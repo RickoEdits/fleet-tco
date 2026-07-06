@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fleet TCO — South Africa Total Cost of Ownership Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0f14; --surface:#141a22; --surface-2:#1b232d; --surface-3:#232d39;
+    --line:#28323f; --line-soft:#1e2731;
+    --amber:#ff9d42; --amber-soft:rgba(255,157,66,.12);
+    --teal:#3fc7b8; --teal-soft:rgba(63,199,184,.12);
+    --text:#eef1f6; --muted:#8996a6; --muted-2:#5d6878;
+    --good:#3fc7a3; --bad:#ff6b6b;
+    --radius:12px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(255,157,66,.06), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 0%, rgba(63,199,184,.05), transparent 55%),
+      var(--bg);
+    color:var(--text); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh;
+  }
+  .wrap{max-width:1240px;margin:0 auto;padding:40px 24px 90px;}
+  a{color:inherit;}
+
+  header{margin-bottom:26px;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);display:flex;align-items:center;gap:8px;}
+  .eyebrow::before{content:"";width:18px;height:2px;background:var(--amber);display:inline-block;}
+  h1{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:clamp(34px,5vw,52px);line-height:1.02;margin:10px 0 8px;letter-spacing:-.01em;}
+  h1 span{color:var(--amber);}
+  .sub{color:var(--muted);font-size:15px;max-width:660px;line-height:1.55;}
+
+  .stat-strip{display:flex;gap:28px;flex-wrap:wrap;margin-top:22px;}
+  .stat{border-left:2px solid var(--line);padding-left:12px;}
+  .stat .n{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:22px;color:var(--text);}
+  .stat .l{font-size:11px;color:var(--muted-2);text-transform:uppercase;letter-spacing:.08em;}
+
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:22px 24px;margin:30px 0;}
+  .panel-title{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;display:flex;align-items:center;}
+  .panel-title .dot{width:7px;height:7px;border-radius:50%;background:var(--good);display:inline-block;margin-right:8px;box-shadow:0 0 8px var(--good);}
+  .controls-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:18px;}
+  .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-family:'IBM Plex Mono',monospace;letter-spacing:.02em;}
+  .field .input-row{display:flex;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;}
+  .field .input-row:focus-within{border-color:var(--amber);}
+  .field input{background:transparent;border:none;outline:none;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600;width:100%;}
+  .field .unit{font-size:12px;color:var(--muted-2);margin-left:6px;white-space:nowrap;}
+
+  .section-heading{display:flex;align-items:baseline;justify-content:space-between;margin:40px 0 14px;flex-wrap:wrap;gap:10px;}
+  .section-heading h2{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:26px;margin:0;}
+  .section-heading .hint{font-size:12.5px;color:var(--muted-2);}
+
+  .catalog-controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+  .search-box{flex:1;min-width:200px;display:flex;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:9px 14px;}
+  .search-box input{background:transparent;border:none;outline:none;color:var(--text);font-size:14px;width:100%;font-family:'Inter',sans-serif;}
+  .search-box svg{flex-shrink:0;margin-right:8px;opacity:.5;}
+  select.brand-select{background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:9px 12px;font-family:'Inter',sans-serif;font-size:13.5px;outline:none;}
+
+  .pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+  .pill{background:var(--surface);border:1px solid var(--line);color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:7px 13px;border-radius:20px;cursor:pointer;transition:.15s;user-select:none;}
+  .pill:hover{border-color:var(--amber);color:var(--text);}
+  .pill.active{background:var(--amber);border-color:var(--amber);color:#1a1206;font-weight:600;}
+
+  .table-shell{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--surface);}
+  .table-head, .row{display:grid;grid-template-columns:2.4fr 1fr 1fr 1.3fr 90px;align-items:center;gap:10px;padding:12px 18px;}
+  .table-head{background:var(--surface-2);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted-2);}
+  .table-head span.sortable{cursor:pointer;}
+  .table-head span.sortable:hover{color:var(--text);}
+  .rows-wrap{max-height:460px;overflow-y:auto;}
+  .row{border-top:1px solid var(--line-soft);font-size:13.5px;transition:background .1s;}
+  .row:hover{background:var(--surface-2);}
+  .row.selected{background:var(--amber-soft);}
+  .veh-name{font-weight:600;}
+  .veh-brand{color:var(--muted-2);font-size:12px;}
+  .type-badge{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--teal);background:var(--teal-soft);padding:3px 8px;border-radius:5px;width:fit-content;}
+  .price-cell{font-family:'IBM Plex Mono',monospace;}
+  .consumption-cell{display:flex;align-items:center;gap:8px;}
+  .cbar{width:56px;height:6px;background:var(--surface-3);border-radius:3px;overflow:hidden;}
+  .cbar-fill{height:100%;background:var(--amber);}
+  .cnum{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+  .add-toggle{background:none;border:1px solid var(--line);color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 12px;border-radius:7px;cursor:pointer;transition:.15s;width:100%;}
+  .add-toggle:hover{border-color:var(--amber);color:var(--amber);}
+  .add-toggle.added{background:var(--good);border-color:var(--good);color:#06231b;font-weight:600;}
+  .empty-row{padding:30px;text-align:center;color:var(--muted-2);font-size:13px;}
+
+  .tray{position:sticky;bottom:16px;z-index:5;margin-top:16px;}
+  .tray-inner{background:var(--surface-3);border:1px solid var(--amber);border-radius:var(--radius);padding:12px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:0 10px 30px rgba(0,0,0,.4);}
+  .tray-count{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--amber);white-space:nowrap;}
+  .tray-chips{display:flex;gap:8px;flex-wrap:wrap;flex:1;}
+  .chip{background:var(--surface-2);border:1px solid var(--line);border-radius:16px;padding:5px 10px 5px 12px;font-size:12px;display:flex;align-items:center;gap:6px;}
+  .chip button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0;line-height:1;}
+  .chip button:hover{color:var(--bad);}
+  .tray-clear{background:none;border:none;color:var(--muted-2);font-family:'IBM Plex Mono',monospace;font-size:11.5px;cursor:pointer;white-space:nowrap;}
+  .tray-clear:hover{color:var(--bad);}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;position:relative;transition:border-color .15s;}
+  .card.best{border-color:var(--good);}
+  .card.best::after{content:"LOWEST TCO";position:absolute;top:-10px;left:18px;background:var(--good);color:#06231b;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.08em;padding:3px 8px;border-radius:4px;}
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:2px;}
+  .card-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;}
+  .card-sub{font-size:11.5px;color:var(--muted-2);font-family:'IBM Plex Mono',monospace;margin-bottom:8px;}
+  .remove-btn{background:none;border:none;color:var(--muted-2);cursor:pointer;font-size:16px;line-height:1;padding:2px 6px;border-radius:4px;}
+  .remove-btn:hover{color:var(--bad);background:rgba(255,107,107,.1);}
+  .total-line{margin:8px 0 14px;}
+  .total-value{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:28px;color:var(--amber);letter-spacing:-.01em;}
+  .total-label{font-size:11px;color:var(--muted-2);text-transform:uppercase;letter-spacing:.08em;}
+  .stack-bar{display:flex;width:100%;height:16px;border-radius:5px;overflow:hidden;background:var(--surface-2);margin-bottom:10px;border:1px solid var(--line);}
+  .stack-seg{height:100%;transition:width .3s;}
+  .legend{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;font-size:11.5px;color:var(--muted);margin-bottom:14px;}
+  .legend-item{display:flex;align-items:center;gap:6px;justify-content:space-between;}
+  .legend-item .k{display:flex;align-items:center;gap:6px;}
+  .swatch{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+  .legend-item .v{font-family:'IBM Plex Mono',monospace;color:var(--text);}
+  details{margin-top:4px;}
+  summary{cursor:pointer;font-size:12px;color:var(--teal);font-family:'IBM Plex Mono',monospace;letter-spacing:.02em;outline:none;}
+  .edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;margin-top:12px;}
+  .edit-field label{display:block;font-size:10.5px;color:var(--muted-2);margin-bottom:4px;}
+  .edit-field .input-row{padding:6px 8px;}
+  .edit-field input{font-size:13px;}
+  .no-selection{border:1px dashed var(--line);border-radius:var(--radius);padding:40px 20px;text-align:center;color:var(--muted-2);font-size:14px;}
+
+  footer{margin-top:52px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted-2);font-size:12.5px;line-height:1.65;}
+  footer b{color:var(--muted);}
+
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-track{background:var(--surface);}
+  ::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:4px;}
+
+  @media (max-width:720px){
+    .table-head{display:none;}
+    .row{grid-template-columns:1fr;gap:6px;padding:14px 16px;}
+    .row .price-cell, .row .consumption-cell{font-size:13px;}
+  }
+  @media (max-width:520px){
+    .wrap{padding:28px 16px 70px;}
+    .edit-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Fleet &amp; Logistics · Public Tool · South Africa</div>
+    <h1>Total Cost of <span>Ownership</span></h1>
+    <p class="sub">Search the South African new-vehicle market, pick the models you're considering, and compare true monthly running cost — finance, fuel, tyres, service, licensing and insurance — before you commit.</p>
+    <div class="stat-strip" id="statStrip"></div>
+  </header>
+
+  <div class="panel">
+    <div class="panel-title"><span class="dot"></span>Contract parameters</div>
+    <div class="controls-grid">
+      <div class="field">
+        <label for="rate">Interest rate</label>
+        <div class="input-row"><input type="number" id="rate" value="10.5" step="0.1"><span class="unit">% p.a.</span></div>
+      </div>
+      <div class="field">
+        <label for="term">Finance term</label>
+        <div class="input-row"><input type="number" id="term" value="60" step="1"><span class="unit">months</span></div>
+      </div>
+      <div class="field">
+        <label for="distance">Contract distance</label>
+        <div class="input-row"><input type="number" id="distance" value="120000" step="1000"><span class="unit">km total</span></div>
+      </div>
+      <div class="field">
+        <label for="fuelprice">Fuel price</label>
+        <div class="input-row"><span class="unit" style="margin:0 6px 0 0;">R</span><input type="number" id="fuelprice" value="25" step="0.5"><span class="unit">/ litre</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-heading">
+    <h2>Vehicle catalog</h2>
+    <span class="hint" id="resultCount"></span>
+  </div>
+
+  <div class="catalog-controls">
+    <div class="search-box">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" id="search" placeholder="Search by model or brand…">
+    </div>
+    <select class="brand-select" id="brandSelect"></select>
+  </div>
+
+  <div class="pills" id="typePills"></div>
+
+  <div class="table-shell">
+    <div class="table-head">
+      <span class="sortable" data-sort="name">Vehicle</span>
+      <span>Type</span>
+      <span class="sortable" data-sort="cost">Price</span>
+      <span class="sortable" data-sort="consumption">Fuel use</span>
+      <span></span>
+    </div>
+    <div class="rows-wrap" id="rowsWrap"></div>
+  </div>
+
+  <div class="tray" id="tray" style="display:none;">
+    <div class="tray-inner">
+      <span class="tray-count" id="trayCount"></span>
+      <div class="tray-chips" id="trayChips"></div>
+      <button class="tray-clear" id="trayClear">Clear all</button>
+    </div>
+  </div>
+
+  <div class="section-heading">
+    <h2>Comparison</h2>
+  </div>
+  <div class="cards" id="cards"></div>
+
+  <footer>
+    <b>How it's calculated:</b> Finance cost uses a standard reducing-balance loan payment against the residual/balloon value. Fuel, service and tyre costs scale with monthly distance (contract distance ÷ term). Insurance is a monthly rate applied to the vehicle's cost. Pricing is indicative ex-showroom South Africa; fuel consumption figures are manufacturer-cycle estimates. Residual value, service/tyre rates and insurance are segment-level assumptions — open "Edit inputs" on any card to refine them for your own fleet data. Confirm final figures with your financier and dealership before signing.
+  </footer>
+</div>
+
+<script>
+const VEHICLE_DB = [{"name":"Ford Everest","brand":"Ford","type":"SUV","cost":825000,"consumption":8.5},{"name":"Ford Territory","brand":"Ford","type":"SUV","cost":593500,"consumption":7.9},{"name":"Ford Ranger XL","brand":"Ford","type":"Pickup","cost":599500,"consumption":7.6},{"name":"Ford Ranger XLT","brand":"Ford","type":"Pickup","cost":655000,"consumption":7.8},{"name":"Ford Ranger Sport","brand":"Ford","type":"Pickup","cost":735000,"consumption":8.0},{"name":"Ford Ranger Wildtrak","brand":"Ford","type":"Pickup","cost":865000,"consumption":8.4},{"name":"Ford Ranger Tremor","brand":"Ford","type":"Pickup","cost":1039000,"consumption":8.9},{"name":"Ford Ranger Platinum","brand":"Ford","type":"Pickup","cost":1179500,"consumption":8.6},{"name":"Ford Ranger Raptor","brand":"Ford","type":"Pickup","cost":1299000,"consumption":10.5},{"name":"Ford Transit Custom","brand":"Ford","type":"Van","cost":770000,"consumption":7.6},{"name":"Ford Transit Van","brand":"Ford","type":"Van","cost":1011500,"consumption":8.9},{"name":"Ford Tourneo Custom","brand":"Ford","type":"MPV","cost":1075500,"consumption":7.8},{"name":"GWM Jolion Pro","brand":"GWM","type":"SUV","cost":392150,"consumption":6.5},{"name":"GWM Jolion Pro Limited","brand":"GWM","type":"SUV","cost":431450,"consumption":6.7},{"name":"GWM Jolion","brand":"GWM","type":"SUV","cost":409900,"consumption":6.5},{"name":"GWM H6","brand":"GWM","type":"SUV","cost":589900,"consumption":7.8},{"name":"GWM H6 GT","brand":"GWM","type":"SUV","cost":699900,"consumption":8.2},{"name":"GWM H7","brand":"GWM","type":"SUV","cost":649900,"consumption":8.6},{"name":"GWM Tank 300","brand":"GWM","type":"SUV","cost":699900,"consumption":9.0},{"name":"GWM Tank 500","brand":"GWM","type":"SUV","cost":1149900,"consumption":10.5},{"name":"GWM P300","brand":"GWM","type":"Pickup","cost":414950,"consumption":7.8},{"name":"GWM P500","brand":"GWM","type":"Pickup","cost":799900,"consumption":8.6},{"name":"GWM Steed 5","brand":"GWM","type":"Pickup","cost":307950,"consumption":8.4},{"name":"Honda Amaze","brand":"Honda","type":"Sedan","cost":254900,"consumption":5.8},{"name":"Honda Fit","brand":"Honda","type":"Hatchback","cost":380500,"consumption":5.6},{"name":"Honda Elevate","brand":"Honda","type":"SUV","cost":369900,"consumption":6.3},{"name":"Honda HR-V","brand":"Honda","type":"SUV","cost":489900,"consumption":6.4},{"name":"Honda CR-V","brand":"Honda","type":"SUV","cost":689900,"consumption":7.5},{"name":"Honda Civic RS","brand":"Honda","type":"Sedan","cost":725000,"consumption":6.8},{"name":"Hyundai Grand i10","brand":"Hyundai","type":"Hatchback","cost":218900,"consumption":5.0},{"name":"Hyundai Grand i10 Sedan","brand":"Hyundai","type":"Sedan","cost":279900,"consumption":5.1},{"name":"Hyundai i20","brand":"Hyundai","type":"Hatchback","cost":296900,"consumption":5.3},{"name":"Hyundai Exter","brand":"Hyundai","type":"SUV","cost":269900,"consumption":5.6},{"name":"Hyundai Venue Cargo","brand":"Hyundai","type":"Van","cost":309900,"consumption":5.7},{"name":"Hyundai Alcazar","brand":"Hyundai","type":"SUV","cost":499900,"consumption":7.8},{"name":"Hyundai Tucson","brand":"Hyundai","type":"SUV","cost":568900,"consumption":7.2},{"name":"Hyundai Santa Fe Hybrid","brand":"Hyundai","type":"SUV","cost":1249900,"consumption":6.0},{"name":"Hyundai Staria","brand":"Hyundai","type":"MPV","cost":975900,"consumption":8.7},{"name":"Hyundai Staria Panelvan","brand":"Hyundai","type":"Van","cost":699900,"consumption":8.7},{"name":"Hyundai H-100 Deck","brand":"Hyundai","type":"Pickup","cost":389900,"consumption":8.2},{"name":"Hyundai H-100 Chassis Cab","brand":"Hyundai","type":"Pickup","cost":367900,"consumption":8.2},{"name":"Hyundai H-100 Tipper","brand":"Hyundai","type":"Pickup","cost":431500,"consumption":8.5},{"name":"Isuzu D-Max Single Cab","brand":"Isuzu","type":"Pickup","cost":373750,"consumption":7.5},{"name":"Isuzu D-Max Extended Cab","brand":"Isuzu","type":"Pickup","cost":533690,"consumption":7.7},{"name":"Isuzu D-Max Double Cab","brand":"Isuzu","type":"Pickup","cost":574010,"consumption":7.8},{"name":"Isuzu D-Max X-Rider","brand":"Isuzu","type":"Pickup","cost":668990,"consumption":8.0},{"name":"Isuzu MU-X","brand":"Isuzu","type":"SUV","cost":752400,"consumption":7.9},{"name":"Jetour Dashing","brand":"Jetour","type":"SUV","cost":439900,"consumption":6.2},{"name":"Jetour X70 Plus","brand":"Jetour","type":"SUV","cost":454900,"consumption":7.5},{"name":"Jetour T1","brand":"Jetour","type":"SUV","cost":514900,"consumption":8.0},{"name":"Jetour T2","brand":"Jetour","type":"SUV","cost":569900,"consumption":8.3},{"name":"Jetour T1 i-DM","brand":"Jetour","type":"SUV","cost":689900,"consumption":5.5},{"name":"Kia Picanto","brand":"Kia","type":"Hatchback","cost":236995,"consumption":4.9},{"name":"Kia Pegas","brand":"Kia","type":"Sedan","cost":239995,"consumption":5.7},{"name":"Kia Sonet","brand":"Kia","type":"SUV","cost":329995,"consumption":5.9},{"name":"Kia Seltos","brand":"Kia","type":"SUV","cost":389995,"consumption":6.8},{"name":"Kia Sportage","brand":"Kia","type":"SUV","cost":662995,"consumption":7.0},{"name":"Kia Sorento","brand":"Kia","type":"SUV","cost":999995,"consumption":7.5},{"name":"Kia Carens","brand":"Kia","type":"MPV","cost":459995,"consumption":6.5},{"name":"Kia Carnival","brand":"Kia","type":"MPV","cost":1049995,"consumption":9.5},{"name":"Kia Tasman","brand":"Kia","type":"Pickup","cost":679995,"consumption":8.7},{"name":"Kia K2700","brand":"Kia","type":"Van","cost":351995,"consumption":8.2},{"name":"Kia K2500","brand":"Kia","type":"Van","cost":424995,"consumption":8.6},{"name":"Mahindra Bolero","brand":"Mahindra","type":"Pickup","cost":215999,"consumption":7.4},{"name":"Mahindra XUV3XO","brand":"Mahindra","type":"SUV","cost":259999,"consumption":6.2},{"name":"Mahindra Scorpio-N","brand":"Mahindra","type":"SUV","cost":489999,"consumption":8.6},{"name":"Mahindra XUV700","brand":"Mahindra","type":"SUV","cost":495199,"consumption":7.3},{"name":"Mahindra Pik Up Single Cab","brand":"Mahindra","type":"Pickup","cost":301599,"consumption":8.0},{"name":"Mahindra Pik Up Double Cab","brand":"Mahindra","type":"Pickup","cost":413849,"consumption":8.2},{"name":"Mahindra S6 Mining","brand":"Mahindra","type":"Pickup","cost":478649,"consumption":8.6},{"name":"Mahindra S4 Game Viewer","brand":"Mahindra","type":"Pickup","cost":503749,"consumption":8.4},{"name":"Mahindra Karoo Dew","brand":"Mahindra","type":"Pickup","cost":657399,"consumption":8.2},{"name":"Mahindra Karoo Dusk","brand":"Mahindra","type":"Pickup","cost":657399,"consumption":8.2},{"name":"Mahindra Karoo Dawn","brand":"Mahindra","type":"Pickup","cost":672699,"consumption":8.2},{"name":"Mahindra Karoo Storm","brand":"Mahindra","type":"Pickup","cost":672699,"consumption":8.2},{"name":"Nissan Magnite","brand":"Nissan","type":"SUV","cost":252200,"consumption":5.6},{"name":"Nissan X-Trail","brand":"Nissan","type":"SUV","cost":687900,"consumption":7.5},{"name":"Nissan Navara Single Cab","brand":"Nissan","type":"Pickup","cost":433500,"consumption":7.0},{"name":"Nissan Navara Double Cab","brand":"Nissan","type":"Pickup","cost":493000,"consumption":7.2},{"name":"Suzuki S-Presso","brand":"Suzuki","type":"Hatchback","cost":178900,"consumption":4.9},{"name":"Suzuki Celerio","brand":"Suzuki","type":"Hatchback","cost":188900,"consumption":4.7},{"name":"Suzuki Ignis","brand":"Suzuki","type":"Hatchback","cost":237900,"consumption":5.0},{"name":"Suzuki Swift","brand":"Suzuki","type":"Hatchback","cost":228900,"consumption":4.9},{"name":"Suzuki Swift Sport","brand":"Suzuki","type":"Hatchback","cost":469900,"consumption":6.3},{"name":"Suzuki Baleno","brand":"Suzuki","type":"Hatchback","cost":269900,"consumption":5.5},{"name":"Suzuki Dzire","brand":"Suzuki","type":"Sedan","cost":229900,"consumption":5.0},{"name":"Suzuki Fronx","brand":"Suzuki","type":"SUV","cost":303900,"consumption":5.6},{"name":"Suzuki Grand Vitara","brand":"Suzuki","type":"SUV","cost":359900,"consumption":5.6},{"name":"Suzuki Jimny","brand":"Suzuki","type":"SUV","cost":444900,"consumption":6.0},{"name":"Suzuki Jimny 5-Door","brand":"Suzuki","type":"SUV","cost":439900,"consumption":6.0},{"name":"Suzuki Ertiga","brand":"Suzuki","type":"MPV","cost":304900,"consumption":5.5},{"name":"Suzuki XL6","brand":"Suzuki","type":"MPV","cost":357900,"consumption":5.8},{"name":"Suzuki Eeco","brand":"Suzuki","type":"Van","cost":196900,"consumption":6.5},{"name":"Suzuki Super Carry","brand":"Suzuki","type":"Van","cost":197900,"consumption":6.8},{"name":"Toyota Vitz","brand":"Toyota","type":"Hatchback","cost":209990,"consumption":4.5},{"name":"Toyota Starlet","brand":"Toyota","type":"Hatchback","cost":244900,"consumption":4.5},{"name":"Toyota Starlet Cross","brand":"Toyota","type":"SUV","cost":304900,"consumption":5.5},{"name":"Toyota Urban Cruiser","brand":"Toyota","type":"SUV","cost":319900,"consumption":5.5},{"name":"Toyota Corolla Cross","brand":"Toyota","type":"SUV","cost":385000,"consumption":5.9},{"name":"Toyota Corolla Hatch","brand":"Toyota","type":"Hatchback","cost":500700,"consumption":5.8},{"name":"Toyota Corolla","brand":"Toyota","type":"Sedan","cost":590200,"consumption":5.7},{"name":"Toyota Rumion","brand":"Toyota","type":"MPV","cost":339900,"consumption":6.5},{"name":"Toyota RAV4","brand":"Toyota","type":"SUV","cost":610000,"consumption":6.5},{"name":"Toyota Fortuner","brand":"Toyota","type":"SUV","cost":685900,"consumption":7.6},{"name":"Toyota Land Cruiser Prado","brand":"Toyota","type":"SUV","cost":980000,"consumption":7.9},{"name":"Toyota Land Cruiser 76","brand":"Toyota","type":"SUV","cost":980000,"consumption":10.7},{"name":"Toyota Land Cruiser 300","brand":"Toyota","type":"SUV","cost":1849900,"consumption":8.9},{"name":"Toyota Land Cruiser 79 Single Cab","brand":"Toyota","type":"Pickup","cost":706200,"consumption":10.3},{"name":"Toyota Land Cruiser 79 Double Cab","brand":"Toyota","type":"Pickup","cost":801000,"consumption":10.3},{"name":"Toyota Land Cruiser FJ","brand":"Toyota","type":"SUV","cost":714000,"consumption":8.9},{"name":"Toyota Hilux Single Cab","brand":"Toyota","type":"Pickup","cost":326200,"consumption":7.6},{"name":"Toyota Hilux Xtra Cab","brand":"Toyota","type":"Pickup","cost":506300,"consumption":7.8},{"name":"Toyota Hilux Double Cab","brand":"Toyota","type":"Pickup","cost":479200,"consumption":7.9},{"name":"Toyota Hiace Ses'fikile","brand":"Toyota","type":"Van","cost":549300,"consumption":9.0},{"name":"Toyota Hiace","brand":"Toyota","type":"Van","cost":680900,"consumption":8.7},{"name":"Toyota Quantum Panel Van","brand":"Toyota","type":"Van","cost":845700,"consumption":9.3},{"name":"Toyota Quantum Bus","brand":"Toyota","type":"Van","cost":895000,"consumption":9.5},{"name":"Toyota Coaster","brand":"Toyota","type":"Bus","cost":1207600,"consumption":13.5},{"name":"Volkswagen Polo Vivo","brand":"Volkswagen","type":"Hatchback","cost":271900,"consumption":5.3},{"name":"Volkswagen Polo","brand":"Volkswagen","type":"Hatchback","cost":373800,"consumption":5.5},{"name":"Volkswagen Polo Sedan","brand":"Volkswagen","type":"Sedan","cost":382600,"consumption":5.6},{"name":"Volkswagen Taigo","brand":"Volkswagen","type":"SUV","cost":514500,"consumption":6.0},{"name":"Volkswagen T-Cross","brand":"Volkswagen","type":"SUV","cost":399900,"consumption":6.2},{"name":"Volkswagen T-Roc","brand":"Volkswagen","type":"SUV","cost":648900,"consumption":6.8},{"name":"Volkswagen Tiguan","brand":"Volkswagen","type":"SUV","cost":668100,"consumption":7.3},{"name":"Volkswagen Tayron","brand":"Volkswagen","type":"SUV","cost":799000,"consumption":7.6},{"name":"Volkswagen Touareg","brand":"Volkswagen","type":"SUV","cost":1494300,"consumption":8.5},{"name":"Volkswagen Golf 1.4 TSI","brand":"Volkswagen","type":"Hatchback","cost":580900,"consumption":6.2},{"name":"Volkswagen Amarok","brand":"Volkswagen","type":"Pickup","cost":593200,"consumption":7.6},{"name":"Volkswagen Caddy Cargo","brand":"Volkswagen","type":"Van","cost":466700,"consumption":5.8},{"name":"Volkswagen Caddy","brand":"Volkswagen","type":"Van","cost":573200,"consumption":5.9},{"name":"Volkswagen Transporter Van","brand":"Volkswagen","type":"Van","cost":776500,"consumption":8.2},{"name":"Volkswagen Transporter Kombi","brand":"Volkswagen","type":"MPV","cost":1102800,"consumption":8.4},{"name":"Volkswagen Crafter","brand":"Volkswagen","type":"Van","cost":861200,"consumption":9.4}];
+
+const SEGMENT_DEFAULTS = {
+  Hatchback: { rv: 40, serviceRate: 0.55, tyreRate: 0.09, licensing: 208.33, insuranceRate: 0.60 },
+  Sedan:     { rv: 38, serviceRate: 0.60, tyreRate: 0.10, licensing: 208.33, insuranceRate: 0.60 },
+  SUV:       { rv: 42, serviceRate: 0.80, tyreRate: 0.13, licensing: 233.33, insuranceRate: 0.65 },
+  Pickup:    { rv: 40, serviceRate: 0.80, tyreRate: 0.13, licensing: 208.33, insuranceRate: 0.65 },
+  MPV:       { rv: 38, serviceRate: 0.70, tyreRate: 0.12, licensing: 233.33, insuranceRate: 0.65 },
+  Van:       { rv: 33, serviceRate: 0.90, tyreRate: 0.15, licensing: 250.00, insuranceRate: 0.70 },
+  Bus:       { rv: 28, serviceRate: 1.30, tyreRate: 0.22, licensing: 300.00, insuranceRate: 0.75 }
+};
+
+const COLORS = { finance:'#ff9d42', fuel:'#3fc7b8', service:'#8996a6', tyres:'#c9a76a', licensing:'#5b8ac9', insurance:'#ff6b6b' };
+const LABELS = { finance:'Finance', fuel:'Fuel', service:'Service &amp; maint.', tyres:'Tyres', licensing:'Licensing', insurance:'Insurance' };
+
+let selected = [];
+let overrides = {};
+let activeType = 'All';
+let sortKey = null, sortDir = 1;
+
+function keyOf(v){ return v.brand + '__' + v.name; }
+function findVeh(key){ return VEHICLE_DB.find(v => keyOf(v) === key); }
+
+function baseline(v){
+  const d = SEGMENT_DEFAULTS[v.type] || SEGMENT_DEFAULTS.SUV;
+  return { cost: v.cost, rv: d.rv, consumption: v.consumption, serviceRate: d.serviceRate, tyreRate: d.tyreRate, licensing: d.licensing, insuranceRate: d.insuranceRate };
+}
+function effective(key){
+  const v = findVeh(key);
+  const b = baseline(v);
+  return Object.assign({}, b, overrides[key] || {});
+}
+
+function fmt(n){ return 'R ' + Math.round(n).toLocaleString('en-ZA'); }
+function fmtK(n){ return 'R ' + (n/1000).toFixed(0) + 'k'; }
+
+function getGlobals(){
+  return {
+    rate: parseFloat(document.getElementById('rate').value) || 0,
+    term: parseFloat(document.getElementById('term').value) || 1,
+    distance: parseFloat(document.getElementById('distance').value) || 0,
+    fuelprice: parseFloat(document.getElementById('fuelprice').value) || 0
+  };
+}
+
+function computeVehicle(cfg, g){
+  const r = (g.rate/100)/12, n = g.term;
+  const rvValue = (cfg.rv/100) * cfg.cost;
+  let finance;
+  if (r === 0) finance = (cfg.cost - rvValue) / n;
+  else {
+    const discountedRV = rvValue / Math.pow(1+r, n);
+    finance = (cfg.cost - discountedRV) * r / (1 - Math.pow(1+r, -n));
+  }
+  const monthlyKm = g.distance / n;
+  const fuel = (cfg.consumption/100) * monthlyKm * g.fuelprice;
+  const service = cfg.serviceRate * monthlyKm;
+  const tyres = cfg.tyreRate * monthlyKm;
+  const licensing = cfg.licensing;
+  const insurance = (cfg.insuranceRate/100) * cfg.cost;
+  return { finance, fuel, service, tyres, licensing, insurance, total: finance+fuel+service+tyres+licensing+insurance };
+}
+
+function renderStats(){
+  const brands = new Set(VEHICLE_DB.map(v => v.brand));
+  const types = new Set(VEHICLE_DB.map(v => v.type));
+  document.getElementById('statStrip').innerHTML = `
+    <div class="stat"><div class="n">${VEHICLE_DB.length}</div><div class="l">Vehicles</div></div>
+    <div class="stat"><div class="n">${brands.size}</div><div class="l">Brands</div></div>
+    <div class="stat"><div class="n">${types.size}</div><div class="l">Segments</div></div>
+  `;
+}
+
+function populateBrandSelect(){
+  const sel = document.getElementById('brandSelect');
+  const brands = [...new Set(VEHICLE_DB.map(v => v.brand))].sort();
+  sel.innerHTML = '<option value="All">All brands</option>' + brands.map(b => `<option value="${b}">${b}</option>`).join('');
+}
+
+function populateTypePills(){
+  const types = ['All', ...new Set(VEHICLE_DB.map(v => v.type))];
+  document.getElementById('typePills').innerHTML = types.map(t =>
+    `<div class="pill ${t===activeType?'active':''}" data-type="${t}">${t}</div>`
+  ).join('');
+  document.querySelectorAll('.pill').forEach(p => {
+    p.addEventListener('click', () => { activeType = p.dataset.type; renderCatalog(); });
+  });
+}
+
+function maxConsumption(){ return Math.max(...VEHICLE_DB.map(v => v.consumption)); }
+
+function renderCatalog(){
+  populateTypePills();
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const brandFilter = document.getElementById('brandSelect').value;
+  let list = VEHICLE_DB.filter(v => {
+    if (activeType !== 'All' && v.type !== activeType) return false;
+    if (brandFilter !== 'All' && v.brand !== brandFilter) return false;
+    if (q && !(v.name.toLowerCase().includes(q) || v.brand.toLowerCase().includes(q))) return false;
+    return true;
+  });
+  if (sortKey){
+    list = list.slice().sort((a,b) => (a[sortKey] > b[sortKey] ? 1 : -1) * sortDir);
+  }
+  document.getElementById('resultCount').textContent = `${list.length} of ${VEHICLE_DB.length} shown`;
+
+  const maxC = maxConsumption();
+  const wrap = document.getElementById('rowsWrap');
+  if (list.length === 0){
+    wrap.innerHTML = '<div class="empty-row">No vehicles match your search.</div>';
+    return;
+  }
+  wrap.innerHTML = list.map(v => {
+    const key = keyOf(v);
+    const isSel = selected.includes(key);
+    const pct = (v.consumption / maxC) * 100;
+    return `
+      <div class="row ${isSel?'selected':''}">
+        <div><div class="veh-name">${v.name}</div><div class="veh-brand">${v.brand}</div></div>
+        <div><span class="type-badge">${v.type}</span></div>
+        <div class="price-cell">${fmtK(v.cost)}</div>
+        <div class="consumption-cell"><div class="cbar"><div class="cbar-fill" style="width:${pct}%"></div></div><span class="cnum">${v.consumption}L</span></div>
+        <div><button class="add-toggle ${isSel?'added':''}" data-key="${key}">${isSel?'Added ✓':'+ Add'}</button></div>
+      </div>`;
+  }).join('');
+
+  wrap.querySelectorAll('.add-toggle').forEach(btn => {
+    btn.addEventListener('click', () => toggleSelect(btn.dataset.key));
+  });
+}
+
+function toggleSelect(key){
+  const idx = selected.indexOf(key);
+  if (idx >= 0) selected.splice(idx, 1);
+  else selected.push(key);
+  renderCatalog();
+  renderTray();
+  renderComparison();
+}
+
+function renderTray(){
+  const tray = document.getElementById('tray');
+  if (selected.length === 0){ tray.style.display = 'none'; return; }
+  tray.style.display = 'block';
+  document.getElementById('trayCount').textContent = selected.length + ' selected';
+  document.getElementById('trayChips').innerHTML = selected.map(key => {
+    const v = findVeh(key);
+    return `<div class="chip">${v.name}<button data-key="${key}">✕</button></div>`;
+  }).join('');
+  document.querySelectorAll('.tray-chips .chip button').forEach(btn => {
+    btn.addEventListener('click', () => toggleSelect(btn.dataset.key));
+  });
+}
+document.getElementById('trayClear').addEventListener('click', () => {
+  selected = []; renderCatalog(); renderTray(); renderComparison();
+});
+
+function renderComparison(){
+  const cardsEl = document.getElementById('cards');
+  if (selected.length === 0){
+    cardsEl.innerHTML = '<div class="no-selection">Add vehicles from the catalog above to compare their total cost of ownership.</div>';
+    return;
+  }
+  const g = getGlobals();
+  const results = selected.map(key => ({ key, v: findVeh(key), r: computeVehicle(effective(key), g) }));
+  const minTotal = Math.min(...results.map(x => x.r.total));
+
+  cardsEl.innerHTML = results.map(({ key, v, r }) => {
+    const cfg = effective(key);
+    const isBest = Math.abs(r.total - minTotal) < 0.5 && results.length > 1;
+    const segs = ['finance','fuel','service','tyres','licensing','insurance'].map(k => {
+      const pct = (r[k] / r.total) * 100;
+      return `<div class="stack-seg" style="width:${pct}%;background:${COLORS[k]}" title="${LABELS[k]}: ${fmt(r[k])}"></div>`;
+    }).join('');
+    const legend = ['finance','fuel','service','tyres','licensing','insurance'].map(k => `
+      <div class="legend-item"><span class="k"><span class="swatch" style="background:${COLORS[k]}"></span>${LABELS[k]}</span><span class="v">${fmt(r[k])}</span></div>`).join('');
+
+    return `
+      <div class="card ${isBest?'best':''}">
+        <div class="card-top">
+          <div><div class="card-title">${v.name}</div></div>
+          <button class="remove-btn" data-key="${key}" title="Remove">✕</button>
+        </div>
+        <div class="card-sub">${v.brand} · ${v.type}</div>
+        <div class="total-line">
+          <div class="total-value">${fmt(r.total)}<span style="font-size:14px;color:var(--muted-2);font-family:'Inter',sans-serif;font-weight:400;"> /mo</span></div>
+          <div class="total-label">Total monthly cost of ownership</div>
+        </div>
+        <div class="stack-bar">${segs}</div>
+        <div class="legend">${legend}</div>
+        <details>
+          <summary>Edit inputs</summary>
+          <div class="edit-grid">
+            <div class="edit-field"><label>Vehicle cost (R)</label><div class="input-row"><input type="number" data-key="${key}" data-field="cost" value="${cfg.cost}"></div></div>
+            <div class="edit-field"><label>RV / balloon (%)</label><div class="input-row"><input type="number" data-key="${key}" data-field="rv" value="${cfg.rv}"></div></div>
+            <div class="edit-field"><label>Fuel consumption (L/100km)</label><div class="input-row"><input type="number" step="0.1" data-key="${key}" data-field="consumption" value="${cfg.consumption}"></div></div>
+            <div class="edit-field"><label>Service &amp; maint. (R/km)</label><div class="input-row"><input type="number" step="0.01" data-key="${key}" data-field="serviceRate" value="${cfg.serviceRate}"></div></div>
+            <div class="edit-field"><label>Tyre cost (R/km)</label><div class="input-row"><input type="number" step="0.01" data-key="${key}" data-field="tyreRate" value="${cfg.tyreRate}"></div></div>
+            <div class="edit-field"><label>Licensing (R/month)</label><div class="input-row"><input type="number" step="0.01" data-key="${key}" data-field="licensing" value="${cfg.licensing}"></div></div>
+            <div class="edit-field"><label>Insurance (% of cost/mo)</label><div class="input-row"><input type="number" step="0.01" data-key="${key}" data-field="insuranceRate" value="${cfg.insuranceRate}"></div></div>
+          </div>
+        </details>
+      </div>`;
+  }).join('');
+
+  cardsEl.querySelectorAll('.remove-btn').forEach(btn => {
+    btn.addEventListener('click', () => toggleSelect(btn.dataset.key));
+  });
+  cardsEl.querySelectorAll('input[data-key]').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const key = e.target.dataset.key, field = e.target.dataset.field;
+      if (!overrides[key]) overrides[key] = {};
+      overrides[key][field] = parseFloat(e.target.value) || 0;
+      renderComparisonPreserveFocus(e.target);
+    });
+  });
+}
+
+function renderComparisonPreserveFocus(target){
+  const key = target.dataset.key, field = target.dataset.field;
+  renderComparison();
+  const restored = document.querySelector(`input[data-key="${key}"][data-field="${field}"]`);
+  if (restored){ restored.focus(); const val = restored.value; restored.value=''; restored.value = val; }
+}
+
+document.querySelectorAll('.table-head .sortable').forEach(el => {
+  el.addEventListener('click', () => {
+    const k = el.dataset.sort;
+    if (sortKey === k) sortDir *= -1; else { sortKey = k; sortDir = 1; }
+    renderCatalog();
+  });
+});
+document.getElementById('search').addEventListener('input', renderCatalog);
+document.getElementById('brandSelect').addEventListener('change', renderCatalog);
+['rate','term','distance','fuelprice'].forEach(id => document.getElementById(id).addEventListener('input', renderComparison));
+
+renderStats();
+populateBrandSelect();
+selected = [ VEHICLE_DB.find(v=>v.name==='Toyota Hilux Double Cab') ].filter(Boolean).map(keyOf)
+  .concat([ VEHICLE_DB.find(v=>v.name==='Ford Ranger XLT') ].filter(Boolean).map(keyOf));
+renderCatalog();
+renderTray();
+renderComparison();
+</script>
+</body>
+</html>
