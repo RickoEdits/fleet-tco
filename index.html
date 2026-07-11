@@ -561,25 +561,25 @@ function renderComparison(){
     const isBest = Math.abs(r.total - minTotal) < 0.5 && results.length > 1;
     const segs = ['finance','fuel','service','tyres','licensing','insurance'].map(k => {
       const pct = (r[k] / r.total) * 100;
-      return `<div class="stack-seg" style="width:${pct}%;background:${COLORS[k]}" title="${LABELS[k]}: ${fmt(r[k])}"></div>`;
+      return `<div class="stack-seg" data-seg="${k}" style="width:${pct}%;background:${COLORS[k]}" title="${LABELS[k]}: ${fmt(r[k])}"></div>`;
     }).join('');
     const legend = ['finance','fuel','service','tyres','licensing','insurance'].map(k => `
-      <div class="legend-item"><span class="k"><span class="swatch" style="background:${COLORS[k]}"></span>${LABELS[k]}</span><span class="v">${fmt(r[k])}</span></div>`).join('');
+      <div class="legend-item"><span class="k"><span class="swatch" style="background:${COLORS[k]}"></span>${LABELS[k]}</span><span class="v" data-legend="${k}">${fmt(r[k])}</span></div>`).join('');
 
     return `
-      <div class="card ${isBest?'best':''}">
+      <div class="card ${isBest?'best':''}" data-card-key="${key}">
         <div class="card-top">
           <div><div class="card-title">${v.name}</div></div>
           <button class="remove-btn" data-key="${key}" title="Remove">✕</button>
         </div>
         <div class="card-sub">${v.used ? 'Second-hand' : v.brand} · ${v.type}${v.used ? ' · <span style="color:var(--amber);">used</span>' : ''}</div>
         ${v.used
-          ? `<div class="edit-note" style="margin:0 0 12px;">${Math.round(cfg.mileage||0).toLocaleString('en-ZA')} km on the clock now → ~${Math.round((cfg.mileage||0) + g.distance).toLocaleString('en-ZA')} km projected at resale</div>`
+          ? `<div class="edit-note" data-mileage-line style="margin:0 0 12px;">${Math.round(cfg.mileage||0).toLocaleString('en-ZA')} km on the clock now → ~${Math.round((cfg.mileage||0) + g.distance).toLocaleString('en-ZA')} km projected at resale</div>`
           : `<a href="${photoLink(v)}" target="_blank" rel="noopener noreferrer" class="photos-link">${photoLinkIsModel(v) ? `View ${v.name} on ${v.brand}` : `View photos on ${v.brand}`} →</a>`
         }
         <div class="total-line">
-          <div class="total-value">${fmt(r.total)}<span style="font-size:14px;color:var(--muted-2);font-family:'Inter',sans-serif;font-weight:400;"> /mo</span></div>
-          <div class="total-label">Total monthly cost of ownership · ${r.cpk.toFixed(2)} R/km</div>
+          <div class="total-value"><span data-total-num>${fmt(r.total)}</span><span style="font-size:14px;color:var(--muted-2);font-family:'Inter',sans-serif;font-weight:400;"> /mo</span></div>
+          <div class="total-label">Total monthly cost of ownership · <span data-cpk-num>${r.cpk.toFixed(2)} R/km</span></div>
         </div>
         <div class="stack-bar">${segs}</div>
         <div class="legend">${legend}</div>
@@ -617,20 +617,47 @@ function renderComparison(){
       const key = e.target.dataset.key, field = e.target.dataset.field;
       if (!overrides[key]) overrides[key] = {};
       overrides[key][field] = parseFloat(e.target.value) || 0;
-      renderComparisonPreserveFocus(e.target);
+      refreshCardOutputs();
     });
   });
 }
 
-function renderComparisonPreserveFocus(target){
-  const key = target.dataset.key, field = target.dataset.field;
-  const selStart = target.selectionStart, selEnd = target.selectionEnd;
-  renderComparison();
-  const restored = document.querySelector(`input[data-key="${key}"][data-field="${field}"]`);
-  if (restored){
-    restored.focus();
-    try { restored.setSelectionRange(selStart, selEnd); } catch(e) {}
-  }
+// Patches only the computed numbers (totals, CPK, stack bar, legend, mileage
+// projection) in place. Never touches <input> elements, so the field the
+// user is actively typing in is never recreated — no focus/cursor race,
+// no dropped keystrokes, even on rapid input.
+function refreshCardOutputs(){
+  const g = getGlobals();
+  const results = selected.map(key => ({ key, v: findVeh(key), r: computeVehicle(effective(key), g) }));
+  const minTotal = Math.min(...results.map(x => x.r.total));
+
+  results.forEach(({ key, v, r }) => {
+    const card = document.querySelector(`.card[data-card-key="${key}"]`);
+    if (!card) return;
+    const cfg = effective(key);
+    const isBest = Math.abs(r.total - minTotal) < 0.5 && results.length > 1;
+    card.classList.toggle('best', isBest);
+
+    const totalNum = card.querySelector('[data-total-num]');
+    if (totalNum) totalNum.textContent = fmt(r.total);
+    const cpkNum = card.querySelector('[data-cpk-num]');
+    if (cpkNum) cpkNum.textContent = r.cpk.toFixed(2) + ' R/km';
+
+    ['finance','fuel','service','tyres','licensing','insurance'].forEach(k => {
+      const pct = (r[k] / r.total) * 100;
+      const seg = card.querySelector(`[data-seg="${k}"]`);
+      if (seg){ seg.style.width = pct + '%'; seg.title = `${LABELS[k]}: ${fmt(r[k])}`; }
+      const leg = card.querySelector(`[data-legend="${k}"]`);
+      if (leg) leg.textContent = fmt(r[k]);
+    });
+
+    if (v.used){
+      const mileageLine = card.querySelector('[data-mileage-line]');
+      if (mileageLine){
+        mileageLine.textContent = `${Math.round(cfg.mileage||0).toLocaleString('en-ZA')} km on the clock now → ~${Math.round((cfg.mileage||0) + g.distance).toLocaleString('en-ZA')} km projected at resale`;
+      }
+    }
+  });
 }
 
 document.querySelectorAll('.table-head .sortable').forEach(el => {
