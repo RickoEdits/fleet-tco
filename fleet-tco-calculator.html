@@ -404,7 +404,7 @@ function baseline(v){
   const d = SEGMENT_DEFAULTS[v.type] || SEGMENT_DEFAULTS.SUV;
   const hasReal = Object.prototype.hasOwnProperty.call(SERVICE_OVERRIDES, v.name);
   const serviceRate = hasReal ? SERVICE_OVERRIDES[v.name] : d.serviceRate;
-  const base = { cost: v.cost, rv: d.rv, consumption: v.consumption, serviceRate: serviceRate, serviceIsReal: hasReal, tyreRate: d.tyreRate, licensing: d.licensing, insuranceRate: d.insuranceRate };
+  const base = { cost: v.cost, rv: d.rv, consumption: v.consumption, serviceRate: serviceRate, serviceIsReal: hasReal, tyreRate: d.tyreRate, licensing: d.licensing, insuranceRate: d.insuranceRate, used: !!v.used };
   if (v.used) base.mileage = v.mileage;
   return base;
 }
@@ -581,17 +581,18 @@ function renderComparison(){
     const legend = ['finance','fuel','service','tyres','licensing','insurance'].map(k => `
       <div class="legend-item"><span class="k"><span class="swatch" style="background:${COLORS[k]}"></span>${LABELS[k]}</span><span class="v" data-legend="${k}">${fmt(r[k])}</span></div>`).join('');
 
+    const isCustom = !!v.used;
+    const isUsedMode = !!cfg.used;
+
     return `
       <div class="card ${isBest?'best':''}" data-card-key="${key}">
         <div class="card-top">
           <div><div class="card-title">${v.name}</div></div>
           <button class="remove-btn" data-key="${key}" title="Remove">✕</button>
         </div>
-        <div class="card-sub">${v.used ? 'Second-hand' : v.brand} · ${v.type}${v.used ? ' · <span style="color:var(--amber);">used</span>' : ''}</div>
-        ${v.used
-          ? `<div class="edit-note" data-mileage-line style="margin:0 0 12px;">${Math.round(cfg.mileage||0).toLocaleString('en-ZA')} km on the clock now → ~${Math.round((cfg.mileage||0) + g.distance).toLocaleString('en-ZA')} km projected at resale</div>`
-          : `<a href="${photoLink(v)}" target="_blank" rel="noopener noreferrer" class="photos-link">${photoLinkIsModel(v) ? `View ${v.name} on ${v.brand}` : `View photos on ${v.brand}`} →</a>`
-        }
+        <div class="card-sub" data-card-sub>${isUsedMode ? 'Second-hand' : v.brand} · ${v.type}${isUsedMode ? ' · <span style="color:var(--amber);">used</span>' : ''}</div>
+        <div data-photos-line>${!isCustom ? `<a href="${photoLink(v)}" target="_blank" rel="noopener noreferrer" class="photos-link">${photoLinkIsModel(v) ? `View ${v.name} on ${v.brand}` : `View photos on ${v.brand}`} →</a>` : ''}</div>
+        <div data-mileage-line style="${isUsedMode ? '' : 'display:none;'}margin:0 0 12px;" class="edit-note">${isUsedMode ? `${Math.round(cfg.mileage||0).toLocaleString('en-ZA')} km on the clock now → ~${Math.round((cfg.mileage||0) + g.distance).toLocaleString('en-ZA')} km projected at resale` : ''}</div>
         <div class="total-line">
           <div class="total-value"><span data-total-num>${fmt(r.total)}</span><span style="font-size:14px;color:var(--muted-2);font-family:'Inter',sans-serif;font-weight:400;"> /mo</span></div>
           <div class="total-label">Total monthly cost of ownership · <span data-cpk-num>${r.cpk.toFixed(2)} R/km</span></div>
@@ -600,20 +601,27 @@ function renderComparison(){
         <div class="legend">${legend}</div>
         <details data-detail-key="${key}" ${openDetails.has(key) ? 'open' : ''}>
           <summary>Edit inputs</summary>
+          ${!isCustom
+            ? `<label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);margin:12px 0 4px;cursor:pointer;">
+                 <input type="checkbox" data-key="${key}" data-field="used" ${isUsedMode?'checked':''} style="width:15px;height:15px;accent-color:var(--amber);cursor:pointer;">
+                 This is a second-hand unit (enter its current mileage)
+               </label>`
+            : ''
+          }
           <div class="edit-grid">
             <div class="edit-field"><label>Vehicle cost (R)</label><div class="input-row"><input type="number" data-key="${key}" data-field="cost" value="${cfg.cost}"></div></div>
             <div class="edit-field"><label>RV / balloon (%)</label><div class="input-row"><input type="number" data-key="${key}" data-field="rv" value="${cfg.rv}"></div></div>
-            ${v.used
+            ${isUsedMode
               ? `<div class="edit-field"><label>Current mileage (km)</label><div class="input-row"><input type="number" step="1000" data-key="${key}" data-field="mileage" value="${cfg.mileage||0}"></div></div>`
               : ''
             }
-            <div class="edit-field ${v.used ? '' : 'locked'}"><label>${v.used ? '' : '<svg class="lock-icon" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>'}Fuel consumption (L/100km)</label><div class="input-row"><input type="number" step="0.1" data-key="${key}" data-field="consumption" value="${cfg.consumption}" ${v.used ? '' : 'disabled'}></div></div>
+            <div class="edit-field ${isCustom ? '' : 'locked'}"><label>${isCustom ? '' : '<svg class="lock-icon" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>'}Fuel consumption (L/100km)</label><div class="input-row"><input type="number" step="0.1" data-key="${key}" data-field="consumption" value="${cfg.consumption}" ${isCustom ? '' : 'disabled'}></div></div>
             <div class="edit-field"><label>Service &amp; maint. (R/km) ${cfg.serviceIsReal ? '<span style="color:var(--good);font-size:9px;">● matched</span>' : '<span style="color:var(--muted-2);font-size:9px;">○ estimated</span>'}</label><div class="input-row"><input type="number" step="0.0001" data-key="${key}" data-field="serviceRate" value="${cfg.serviceRate}"></div></div>
             <div class="edit-field"><label>Tyre cost (R/km)</label><div class="input-row"><input type="number" step="0.01" data-key="${key}" data-field="tyreRate" value="${cfg.tyreRate}"></div></div>
             <div class="edit-field"><label>Licensing (R/month)</label><div class="input-row"><input type="number" step="0.01" data-key="${key}" data-field="licensing" value="${cfg.licensing}"></div></div>
             <div class="edit-field"><label>Insurance (% of cost/mo)</label><div class="input-row"><input type="number" step="0.01" data-key="${key}" data-field="insuranceRate" value="${cfg.insuranceRate}"></div></div>
           </div>
-          <div class="edit-note">${v.used ? 'All fields here are your own estimates for this specific vehicle — adjust to match its condition and mileage.' : 'Fuel consumption is fixed per vehicle. All other fields are starting estimates you can adjust.'}</div>
+          <div class="edit-note">${isCustom ? 'All fields here are your own estimates for this specific vehicle — adjust to match its condition and mileage.' : 'Fuel consumption is fixed per vehicle. All other fields are starting estimates you can adjust.'}</div>
         </details>
       </div>`;
   }).join('');
@@ -628,12 +636,25 @@ function renderComparison(){
     btn.addEventListener('click', () => toggleSelect(btn.dataset.key));
   });
   cardsEl.querySelectorAll('input[data-key]').forEach(inp => {
-    inp.addEventListener('input', e => {
-      const key = e.target.dataset.key, field = e.target.dataset.field;
-      if (!overrides[key]) overrides[key] = {};
-      overrides[key][field] = parseFloat(e.target.value) || 0;
-      refreshCardOutputs();
-    });
+    if (inp.type === 'checkbox'){
+      // Toggling used-mode changes which fields are shown, so it needs a
+      // full rebuild — unlike numeric edits, this isn't typed rapidly,
+      // so there's no focus race to worry about.
+      inp.addEventListener('change', e => {
+        const key = e.target.dataset.key, field = e.target.dataset.field;
+        if (!overrides[key]) overrides[key] = {};
+        overrides[key][field] = e.target.checked;
+        if (e.target.checked && overrides[key].mileage === undefined) overrides[key].mileage = 80000;
+        renderComparison();
+      });
+    } else {
+      inp.addEventListener('input', e => {
+        const key = e.target.dataset.key, field = e.target.dataset.field;
+        if (!overrides[key]) overrides[key] = {};
+        overrides[key][field] = parseFloat(e.target.value) || 0;
+        refreshCardOutputs();
+      });
+    }
   });
 }
 
@@ -666,7 +687,7 @@ function refreshCardOutputs(){
       if (leg) leg.textContent = fmt(r[k]);
     });
 
-    if (v.used){
+    if (cfg.used){
       const mileageLine = card.querySelector('[data-mileage-line]');
       if (mileageLine){
         mileageLine.textContent = `${Math.round(cfg.mileage||0).toLocaleString('en-ZA')} km on the clock now → ~${Math.round((cfg.mileage||0) + g.distance).toLocaleString('en-ZA')} km projected at resale`;
