@@ -192,8 +192,12 @@
         <div class="input-row"><input type="number" id="term" value="60" step="1"><span class="unit">months</span></div>
       </div>
       <div class="field">
-        <label for="distance">Contract distance</label>
-        <div class="input-row"><input type="number" id="distance" value="120000" step="1000"><span class="unit">km total</span></div>
+        <label for="startKm">Starting odometer</label>
+        <div class="input-row"><input type="number" id="startKm" value="0" step="1000"><span class="unit">km</span></div>
+      </div>
+      <div class="field">
+        <label for="endKm">Ending odometer</label>
+        <div class="input-row"><input type="number" id="endKm" value="120000" step="1000"><span class="unit">km</span></div>
       </div>
       <div class="field">
         <label for="fuelprice">Fuel price</label>
@@ -236,45 +240,13 @@
     </div>
   </div>
 
-  <div class="panel" id="usedPanel">
-    <div class="panel-title"><span class="dot" style="background:var(--teal);box-shadow:0 0 8px var(--teal);"></span>Add a second-hand vehicle</div>
-    <div class="controls-grid">
-      <div class="field">
-        <label for="used-name">Vehicle name</label>
-        <div class="input-row"><input type="text" id="used-name" placeholder="e.g. 2019 Toyota Hilux 2.8 GD-6"></div>
-      </div>
-      <div class="field">
-        <label for="used-type">Segment</label>
-        <div class="input-row">
-          <select id="used-type" style="background:transparent;border:none;outline:none;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600;width:100%;">
-            <option>Hatchback</option><option>Sedan</option><option selected>SUV</option><option>Pickup</option><option>MPV</option><option>Van</option><option>Bus</option>
-          </select>
-        </div>
-      </div>
-      <div class="field">
-        <label for="used-price">Purchase price</label>
-        <div class="input-row"><span class="unit" style="margin:0 6px 0 0;">R</span><input type="number" id="used-price" value="350000" step="5000"></div>
-      </div>
-      <div class="field">
-        <label for="used-mileage">Current mileage</label>
-        <div class="input-row"><input type="number" id="used-mileage" value="80000" step="1000"><span class="unit">km on the clock</span></div>
-      </div>
-      <div class="field">
-        <label for="used-consumption">Fuel consumption</label>
-        <div class="input-row"><input type="number" id="used-consumption" value="8.0" step="0.1"><span class="unit">L/100km</span></div>
-      </div>
-    </div>
-    <button id="usedAddBtn" class="add-toggle" style="margin-top:16px;width:auto;padding:10px 22px;">+ Add to comparison</button>
-    <div class="edit-note">Starting estimates for RV, service, tyres, licensing and insurance are filled in from segment averages — open "Edit inputs" on the card below to tune them for this specific vehicle's condition and mileage.</div>
-  </div>
-
   <div class="section-heading">
     <h2>Comparison</h2>
   </div>
   <div class="cards" id="cards"></div>
 
   <footer>
-    <b>How it's calculated:</b> Finance cost uses a standard reducing-balance loan payment against the residual/balloon value. Fuel, service and tyre costs scale with monthly distance (contract distance ÷ term). Insurance is a monthly rate applied to the vehicle's cost. Pricing is indicative ex-showroom South Africa. <b>Fuel consumption</b> is fixed to the manufacturer-cycle figure for each vehicle and can't be edited. Every other field — vehicle cost, RV/balloon, service &amp; maintenance, tyres, licensing and insurance — is a starting estimate you can adjust to match your own fleet's quotes; service rates marked "● matched" come from real cost-per-km fleet data, "○ estimated" ones use a segment-level assumption. Insurance defaults are calibrated against real South African comprehensive premium data (0.30%–0.45% of vehicle value per month, varying by vehicle type), not a flat guess. Every card also shows a cost-per-km (R/km) figure — your total cost over the contract term divided by the contract distance — so new and second-hand vehicles compare on the same basis. <b>Second-hand vehicles:</b> use the "Add a second-hand vehicle" panel to enter its purchase price and current mileage, then open "Edit inputs" on its card to set RV, service, tyres, licensing and insurance to match its condition — none of these are locked, since there's no manufacturer spec sheet to fall back on. Confirm final figures with your financier and dealership before signing.
+    <b>How it's calculated:</b> Finance cost uses a standard reducing-balance loan payment against the residual/balloon value. Fuel, service and tyre costs scale with monthly distance (ending odometer minus starting odometer, ÷ term) — set the starting odometer above 0 if you're buying a vehicle that's already been driven. Insurance is a monthly rate applied to the vehicle's cost. Pricing is indicative ex-showroom South Africa. <b>Fuel consumption</b> is fixed to the manufacturer-cycle figure for each vehicle and can't be edited. Every other field — vehicle cost, RV/balloon, service &amp; maintenance, tyres, licensing and insurance — is a starting estimate you can adjust to match your own fleet's quotes; service rates marked "● matched" come from real cost-per-km fleet data, "○ estimated" ones use a segment-level assumption. Insurance defaults are calibrated against real South African comprehensive premium data (0.30%–0.45% of vehicle value per month, varying by vehicle type), not a flat guess. Every card also shows a cost-per-km (R/km) figure — your total cost over the contract term divided by the distance driven — so new and second-hand vehicles compare on the same basis. <b>Second-hand vehicles:</b> tick "This is a second-hand unit" under "Edit inputs" on any vehicle's card, then enter its purchase price and current mileage — RV, service, tyres, licensing and insurance stay open to adjust to match its condition. Confirm final figures with your financier and dealership before signing.
   </footer>
   </section>
 
@@ -406,11 +378,9 @@ let selected = [];
 let overrides = {};
 let activeType = 'All';
 let sortKey = null, sortDir = 1;
-let customVehicles = {};
-let customIdCounter = 0;
 
 function keyOf(v){ return v.brand + '__' + v.name; }
-function findVeh(key){ return customVehicles[key] || VEHICLE_DB.find(v => keyOf(v) === key); }
+function findVeh(key){ return VEHICLE_DB.find(v => keyOf(v) === key); }
 
 const SERVICE_OVERRIDES = {"Ford Everest":0.0537,"Ford Territory":0.0326,"Ford Transit Custom":0.0458,"Ford Transit Van":0.0458,"Ford Tourneo Custom":0.0458,"GWM Tank 300":0.2134,"GWM Steed 5":0.2104,"Honda Amaze":0.12,"Honda Fit":0.1104,"Honda Civic RS":0.085,"Hyundai Grand i10":0.1354,"Hyundai Grand i10 Sedan":0.1354,"Hyundai i20":0.0796,"Hyundai Venue Cargo":0.1394,"Hyundai Tucson":0.0513,"Hyundai Santa Fe Hybrid":0.0592,"Hyundai Staria":0.0738,"Hyundai Staria Panelvan":0.0738,"Hyundai H-100 Deck":0.1438,"Hyundai H-100 Chassis Cab":0.1418,"Hyundai H-100 Tipper":0.1418,"Isuzu D-Max Single Cab":0.0425,"Isuzu D-Max Extended Cab":0.0447,"Isuzu D-Max Double Cab":0.0425,"Isuzu D-Max X-Rider":0.0447,"Kia Picanto":0.1201,"Kia Pegas":0.0953,"Kia Sonet":0.1255,"Kia Seltos":0.0485,"Kia Sportage":0.045,"Kia Sorento":0.043,"Kia Carens":0.0853,"Kia Carnival":0.043,"Mahindra Bolero":0.2166,"Mahindra Scorpio-N":0.0612,"Mahindra Pik Up Single Cab":0.2248,"Mahindra Pik Up Double Cab":0.2248,"Mahindra S6 Mining":0.0722,"Mahindra S4 Game Viewer":0.2482,"Mahindra Karoo Dew":0.0621,"Mahindra Karoo Dusk":0.0644,"Mahindra Karoo Dawn":0.0621,"Mahindra Karoo Storm":0.0621,"Nissan Magnite":0.1579,"Nissan X-Trail":0.0521,"Nissan Navara Single Cab":0.0546,"Nissan Navara Double Cab":0.0546,"Suzuki S-Presso":0.0717,"Suzuki Celerio":0.1023,"Suzuki Ignis":0.1043,"Suzuki Swift":0.1027,"Suzuki Swift Sport":0.1219,"Suzuki Baleno":0.0727,"Suzuki Dzire":0.1014,"Suzuki Grand Vitara":0.0452,"Suzuki Jimny":0.1188,"Suzuki Jimny 5-Door":0.1188,"Suzuki Ertiga":0.0718,"Suzuki Super Carry":0.1901,"Toyota Starlet":0.1062,"Toyota Starlet Cross":0.1062,"Toyota Urban Cruiser":0.1041,"Toyota Corolla Cross":0.0471,"Toyota Corolla Hatch":0.1092,"Toyota Corolla":0.1092,"Toyota Rumion":0.1127,"Toyota RAV4":0.0471,"Toyota Fortuner":0.0818,"Toyota Land Cruiser Prado":0.0984,"Toyota Land Cruiser 76":0.433,"Toyota Land Cruiser 300":0.1149,"Toyota Land Cruiser 79 Single Cab":0.3385,"Toyota Land Cruiser 79 Double Cab":0.3385,"Toyota Land Cruiser FJ":0.433,"Toyota Hilux Single Cab":0.0638,"Toyota Hilux Xtra Cab":0.0696,"Toyota Hilux Double Cab":0.0638,"Toyota Hiace Ses'fikile":0.1711,"Toyota Hiace":0.0856,"Toyota Quantum Panel Van":0.0818,"Toyota Quantum Bus":0.0856,"Volkswagen Polo Vivo":0.1745,"Volkswagen Polo":0.1745,"Volkswagen Polo Sedan":0.1745,"Volkswagen Taigo":0.1145,"Volkswagen T-Cross":0.1121,"Volkswagen T-Roc":0.0531,"Volkswagen Tiguan":0.0531,"Volkswagen Touareg":0.0451,"Volkswagen Golf 1.4 TSI":0.0551,"Volkswagen Amarok":0.0604,"Volkswagen Caddy Cargo":0.086,"Volkswagen Caddy":0.086,"Volkswagen Transporter Van":0.1039,"Volkswagen Transporter Kombi":0.0893};
 
@@ -432,10 +402,14 @@ function fmt(n){ return 'R ' + Math.round(n).toLocaleString('en-ZA'); }
 function fmtK(n){ return 'R ' + (n/1000).toFixed(0) + 'k'; }
 
 function getGlobals(){
+  const startKm = parseFloat(document.getElementById('startKm').value) || 0;
+  const endKm = parseFloat(document.getElementById('endKm').value) || 0;
   return {
     rate: parseFloat(document.getElementById('rate').value) || 0,
     term: parseFloat(document.getElementById('term').value) || 1,
-    distance: parseFloat(document.getElementById('distance').value) || 0,
+    startKm: startKm,
+    endKm: endKm,
+    distance: Math.max(0, endKm - startKm),
     fuelprice: parseFloat(document.getElementById('fuelprice').value) || 0
   };
 }
@@ -530,31 +504,12 @@ function renderCatalog(){
 
 function toggleSelect(key){
   const idx = selected.indexOf(key);
-  if (idx >= 0){
-    selected.splice(idx, 1);
-    if (customVehicles[key]){ delete customVehicles[key]; delete overrides[key]; }
-  } else {
-    selected.push(key);
-  }
+  if (idx >= 0) selected.splice(idx, 1);
+  else selected.push(key);
   renderCatalog();
   renderTray();
   renderComparison();
 }
-
-document.getElementById('usedAddBtn').addEventListener('click', () => {
-  const name = document.getElementById('used-name').value.trim() || 'Second-hand vehicle';
-  const type = document.getElementById('used-type').value;
-  const cost = parseFloat(document.getElementById('used-price').value) || 0;
-  const mileage = parseFloat(document.getElementById('used-mileage').value) || 0;
-  const consumption = parseFloat(document.getElementById('used-consumption').value) || 0;
-  customIdCounter++;
-  const key = 'custom-' + customIdCounter;
-  customVehicles[key] = { name, brand: '', type, cost, consumption, mileage, used: true };
-  selected.push(key);
-  document.getElementById('used-name').value = '';
-  renderTray();
-  renderComparison();
-});
 
 function renderTray(){
   const tray = document.getElementById('tray');
@@ -658,7 +613,7 @@ function renderComparison(){
         const key = e.target.dataset.key, field = e.target.dataset.field;
         if (!overrides[key]) overrides[key] = {};
         overrides[key][field] = e.target.checked;
-        if (e.target.checked && overrides[key].mileage === undefined) overrides[key].mileage = 80000;
+        if (e.target.checked && overrides[key].mileage === undefined) overrides[key].mileage = getGlobals().startKm;
         renderComparison();
       });
     } else {
@@ -845,7 +800,7 @@ document.querySelectorAll('.table-head .sortable').forEach(el => {
 });
 document.getElementById('search').addEventListener('input', renderCatalog);
 document.getElementById('brandSelect').addEventListener('change', renderCatalog);
-['rate','term','distance','fuelprice'].forEach(id => document.getElementById(id).addEventListener('input', renderComparison));
+['rate','term','startKm','endKm','fuelprice'].forEach(id => document.getElementById(id).addEventListener('input', renderComparison));
 
 renderStats();
 populateBrandSelect();
