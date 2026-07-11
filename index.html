@@ -173,6 +173,21 @@
     <div class="stat-strip" id="statStrip"></div>
   </header>
 
+  <div class="panel" id="regionBanner" style="padding:16px 20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;">
+      <div style="font-size:13px;color:var(--muted);max-width:540px;line-height:1.55;">
+        <b style="color:var(--text);">Outside South Africa?</b> Fleet TCO currently only covers the South African new-vehicle market. Tell us your country and we'll let you know if we build out coverage for your region.
+      </div>
+      <form id="regionForm" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <input type="text" id="rf-hp" name="website" autocomplete="off" tabindex="-1" style="position:absolute;left:-9999px;opacity:0;" aria-hidden="true">
+        <input type="text" id="region-country" placeholder="Your country" required style="background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;width:150px;">
+        <input type="email" id="region-email" placeholder="Email (optional)" style="background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;width:170px;">
+        <button type="submit" id="region-submit" class="add-toggle" style="width:auto;padding:9px 16px;white-space:nowrap;">Notify me</button>
+      </form>
+    </div>
+    <div id="region-status" style="margin-top:8px;font-size:12.5px;"></div>
+  </div>
+
   <nav class="tabnav">
     <button class="tab-btn active" data-view="calculator">TCO Calculator</button>
     <button class="tab-btn" data-view="procure">Fleet Procure</button>
@@ -771,6 +786,49 @@ document.getElementById('procureForm').addEventListener('submit', async (e) => {
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = 'Submit enquiry';
+  }
+});
+
+document.getElementById('regionForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  // Honeypot: real users never fill this hidden field — bots often do.
+  if (document.getElementById('rf-hp').value){ e.target.reset(); return; }
+  const statusEl = document.getElementById('region-status');
+  const submitBtn = document.getElementById('region-submit');
+  const country = document.getElementById('region-country').value.trim();
+  const email = document.getElementById('region-email').value.trim();
+  if (!country) return;
+
+  const lead = {
+    access_key: WEB3FORMS_ACCESS_KEY,
+    subject: `Fleet TCO region interest — ${country}`,
+    from_name: 'Fleet TCO',
+    country: country,
+    email: email || '(not provided)',
+    message: `Visitor requesting Fleet TCO coverage for: ${country}`
+  };
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Sending…';
+
+  try{
+    const res = await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(lead)
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message || 'Submission failed');
+    statusEl.style.color = 'var(--good)';
+    statusEl.textContent = `Thanks — we'll let you know if we build out coverage for ${country}.`;
+    e.target.reset();
+  } catch(err){
+    console.error(err);
+    statusEl.style.color = 'var(--bad)';
+    statusEl.textContent = 'Something went wrong — please try again.';
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Notify me';
   }
 });
 </script>
