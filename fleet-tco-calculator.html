@@ -4,16 +4,49 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fleet TCO — South Africa Total Cost of Ownership Calculator</title>
-<meta name="description" content="Compare true monthly cost of ownership across 150+ vehicles sold in South Africa — finance, fuel, tyres, service, licensing and insurance, side by side.">
+<meta name="description" content="Compare true monthly cost of ownership across 240+ vehicles from 44 brands sold in South Africa — finance, fuel, tyres, service, licensing and insurance, side by side. Free, no signup.">
+<meta name="keywords" content="fleet TCO, total cost of ownership calculator, South Africa vehicle cost calculator, cost per km, fleet management, vehicle finance comparison">
+<meta name="robots" content="index, follow">
 <meta property="og:title" content="Fleet TCO — South Africa Total Cost of Ownership Calculator">
-<meta property="og:description" content="Compare true monthly running cost across 150+ vehicles sold in South Africa before you commit to a fleet purchase.">
+<meta property="og:description" content="Compare true monthly running cost across 240+ vehicles from 44 brands sold in South Africa before you commit to a fleet purchase.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://fleet-tco-lemon.vercel.app/">
+<meta property="og:site_name" content="Fleet TCO">
+<meta property="og:locale" content="en_ZA">
 <link rel="canonical" href="https://fleet-tco-lemon.vercel.app/">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Fleet TCO — South Africa Total Cost of Ownership Calculator">
+<meta name="twitter:description" content="Compare true monthly running cost across 240+ vehicles from 44 brands sold in South Africa before you commit to a fleet purchase.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚚</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Fleet TCO",
+  "url": "https://fleet-tco-lemon.vercel.app/",
+  "description": "A free South African Total Cost of Ownership calculator for fleet and vehicle buying decisions. Compares finance, fuel, tyres, service, licensing and insurance across 240+ vehicles from 44 brands sold in South Africa.",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Any (web browser)",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "ZAR"
+  },
+  "areaServed": {
+    "@type": "Country",
+    "name": "South Africa"
+  },
+  "featureList": [
+    "Vehicle total cost of ownership comparison",
+    "Cost-per-km calculator",
+    "Second-hand vehicle TCO mode",
+    "Depreciation curve analytics",
+    "Fleet procurement enquiry routing"
+  ]
+}
+</script>
 <style>
   :root{
     --bg:#0c0f14; --surface:#141a22; --surface-2:#1b232d; --surface-3:#232d39;
@@ -175,7 +208,7 @@
 
   <nav class="tabnav">
     <button class="tab-btn active" data-view="calculator">TCO Calculator</button>
-    <button class="tab-btn" data-view="procure">Fleet Procure</button>
+    <button class="tab-btn" data-view="procure">Fleet Procure <span style="opacity:.55;font-size:.85em;">(Beta)</span></button>
     <button class="tab-btn" data-view="analytics">Data Analytics</button>
   </nav>
 
@@ -253,9 +286,9 @@
   <section id="view-procure" class="view" style="display:none;">
     <div class="section-heading" style="margin-top:10px;">
       <h2>Fleet Procure</h2>
-      <span class="hint">Submit an enquiry — we'll route it to the right dealership partner</span>
+      <span class="hint">Beta — dealer partner network is still being built out</span>
     </div>
-    <p class="sub" style="margin-bottom:24px;">Found a vehicle that works for your fleet? Submit your details below and we'll connect you directly with our dealership partner for that brand — no generic call centre, just the person who can actually put a deal together.</p>
+    <p class="sub" style="margin-bottom:8px;">Found a vehicle that works for your fleet? Submit your details below. We're building direct dealership partnerships brand by brand — until one's confirmed for the brand you select, your enquiry comes straight to the Fleet TCO team and we'll do our best to point you in the right direction.</p>
 
     <div class="panel" style="max-width:640px;">
       <form id="procureForm">
@@ -309,7 +342,7 @@
       </form>
     </div>
 
-    <p class="edit-note" style="margin-top:18px;max-width:640px;">By submitting, you consent to your details being shared with the relevant dealership partner for the purpose of following up on this enquiry.</p>
+    <p class="edit-note" style="margin-top:18px;max-width:640px;">Privacy: submitting this form sends your name, phone, email and enquiry details to the Fleet TCO team (and, once a brand partner is confirmed, to that dealership) solely to follow up on your enquiry. We don't sell or share your details with anyone else. To request deletion of your data, email <a href="mailto:rickoedits@gmail.com" style="color:inherit;">rickoedits@gmail.com</a>.</p>
   </section>
 
   <section id="view-analytics" class="view" style="display:none;">
@@ -854,22 +887,18 @@ function populateProcureVehicleSelect(brand){
 populateProcureBrandSelect();
 document.getElementById('pf-brand').addEventListener('change', e => populateProcureVehicleSelect(e.target.value));
 
-// Get a free access key at https://web3forms.com (sign up, then "Create Access Key") and paste it below.
-const WEB3FORMS_ACCESS_KEY = "c71f6399-502b-4aa8-ad86-6a15004bceaa";
-
 document.getElementById('procureForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   // Honeypot: real users never fill this hidden field — bots often do.
-  if (document.getElementById('pf-hp').value){ e.target.reset(); return; }
+  const honeypot = document.getElementById('pf-hp').value;
+  if (honeypot){ e.target.reset(); return; }
   const statusEl = document.getElementById('pf-status');
   const submitBtn = document.getElementById('pf-submit');
   const brand = document.getElementById('pf-brand').value;
   const dealer = DEALER_CONTACTS[brand] || { contact: 'Unassigned' };
 
   const lead = {
-    access_key: WEB3FORMS_ACCESS_KEY,
-    subject: `Fleet Procure enquiry — ${brand || 'General'}`,
-    from_name: 'Fleet TCO',
+    website: honeypot,
     name: document.getElementById('pf-name').value.trim(),
     company: document.getElementById('pf-company').value.trim(),
     phone: document.getElementById('pf-phone').value.trim(),
@@ -885,15 +914,20 @@ document.getElementById('procureForm').addEventListener('submit', async (e) => {
   submitBtn.textContent = 'Sending…';
 
   try{
-    const res = await fetch('https://api.web3forms.com/submit', {
+    // Submitted to our own serverless proxy (/api/submit-lead), not directly to
+    // Web3Forms — keeps the access key server-side only, out of page source.
+    const res = await fetch('/api/submit-lead', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify(lead)
     });
     const data = await res.json();
     if (!data.success) throw new Error(data.message || 'Submission failed');
+    const dealerAssigned = dealer.contact && dealer.contact !== 'Partner not yet assigned' && dealer.contact !== 'Unassigned';
     statusEl.style.color = 'var(--good)';
-    statusEl.textContent = `Thanks — your enquiry has been sent through${brand ? ' to our ' + brand + ' partner' : ''}. They'll be in touch shortly.`;
+    statusEl.textContent = dealerAssigned
+      ? `Thanks — your enquiry has been sent through to our ${brand} partner. They'll be in touch shortly.`
+      : `Thanks — your enquiry has been received. We don't have a dealer partner confirmed for ${brand || 'this brand'} yet, so it's gone straight to the Fleet TCO team and we'll follow up directly.`;
     e.target.reset();
     populateProcureVehicleSelect('');
   } catch(err){
@@ -906,5 +940,7 @@ document.getElementById('procureForm').addEventListener('submit', async (e) => {
   }
 });
 </script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
 </body>
 </html>

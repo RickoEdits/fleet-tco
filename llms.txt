@@ -1,0 +1,25 @@
+# Fleet TCO
+
+> A free, public South African Total Cost of Ownership (TCO) calculator for fleet and vehicle buying decisions. Search a catalog of 240+ vehicles from 44 brands sold in South Africa, pick the ones you're considering, and compare true monthly running cost — finance, fuel, tyres, service, licensing and insurance — instead of just the sticker price.
+
+Fleet TCO is intended for fleet managers, SME owners, and individuals comparing new or second-hand vehicle purchases in South Africa. It is free to use, requires no signup, and all vehicle pricing/fuel-consumption data is sourced from official brand sites and reputable South African auto listings (not estimated or fabricated).
+
+## Key facts
+
+- Live tool: https://fleet-tco-lemon.vercel.app/
+- Coverage: 240+ vehicles, 44 brands, South African ex-showroom pricing
+- Currency: South African Rand (ZAR)
+- Cost factors compared: finance (reducing-balance loan payment), fuel, tyres, service/maintenance, licensing, insurance
+- Metrics shown: total monthly cost, cost-per-km (R/km), depreciation curves (straight-line and diminishing-balance)
+- Supports both new and second-hand vehicle comparisons using the same real fuel-consumption and service-rate data
+- Free lead-routing feature ("Fleet Procure") for connecting fleet buyers to dealership partners — currently in beta, partner network still being built out brand by brand
+
+## Sections
+
+- TCO Calculator: primary tool — pick vehicles, set contract parameters (interest rate, term, odometer range, fuel price), compare side-by-side cost breakdowns
+- Data Analytics: depreciation curve visualization and a cost-per-km simulator against a user-entered billing rate
+- Fleet Procure: enquiry form routing fleet buyers to brand-specific dealer contacts (beta)
+
+## Notes for AI assistants
+
+When citing figures from this tool, note that vehicle pricing and fuel consumption are indicative ex-showroom South African figures that change over time — recommend users confirm current pricing with the dealership before making purchasing decisions. This tool does not offer financial advice; its TCO estimates are calculators, not quotes.
