@@ -1,8 +1,8 @@
-# Fleet TCO
+# FleetPro TCO
 
 > A free, public South African Total Cost of Ownership (TCO) calculator for fleet and vehicle buying decisions. Search a catalog of 240+ vehicles from 44 brands sold in South Africa, pick the ones you're considering, and compare true monthly running cost — finance, fuel, tyres, service, licensing and insurance — instead of just the sticker price.
 
-Fleet TCO is intended for fleet managers, SME owners, and individuals comparing new or second-hand vehicle purchases in South Africa. It is free to use, requires no signup, and all vehicle pricing/fuel-consumption data is sourced from official brand sites and reputable South African auto listings (not estimated or fabricated).
+FleetPro TCO is intended for fleet managers, SME owners, and individuals comparing new or second-hand vehicle purchases in South Africa. It is free to use, requires no signup, and all vehicle pricing/fuel-consumption data is sourced from official brand sites and reputable South African auto listings (not estimated or fabricated).
 
 ## Key facts
 

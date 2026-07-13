@@ -1,6 +1,6 @@
 # /prime
 
-Orient yourself in the Fleet TCO codebase at the start of a session. Read the following, in order, and hold the context — don't narrate what you're reading, just report a short summary at the end.
+Orient yourself in the FleetPro TCO codebase at the start of a session. Read the following, in order, and hold the context — don't narrate what you're reading, just report a short summary at the end.
 
 1. Read `README.md` — what the product is, tech stack, repo structure.
 2. Read `MONETIZATION.md` — current monetization status/plan, so business-facing suggestions stay consistent with the agreed approach.

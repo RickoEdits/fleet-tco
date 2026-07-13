@@ -1,6 +1,6 @@
 # /check
 
-Pre-deploy validation pass for Fleet TCO. Run before shipping changes to `index.html` or the serverless function. Report pass/fail per item — don't silently fix anything, surface it so the user decides.
+Pre-deploy validation pass for FleetPro TCO. Run before shipping changes to `index.html` or the serverless function. Report pass/fail per item — don't silently fix anything, surface it so the user decides.
 
 1. **HTML files in sync** — `diff index.html fleet-tco-calculator.html` must be empty.
 2. **Inline JS syntax** — extract the `<script>` blocks from `index.html` (skip `type="application/ld+json"` and any `src=` script tags) and run `node --check` against the extracted JS.

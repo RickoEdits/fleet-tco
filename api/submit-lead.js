@@ -47,7 +47,7 @@ module.exports = async (req, res) => {
   const lead = {
     access_key: accessKey,
     subject: `Fleet Procure enquiry — ${body.brand || 'General'}`,
-    from_name: 'Fleet TCO',
+    from_name: 'FleetPro TCO',
     name: body.name,
     company: body.company || '',
     phone: body.phone,

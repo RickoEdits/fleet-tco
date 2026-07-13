@@ -1,4 +1,4 @@
-# Fleet TCO
+# FleetPro TCO
 
 A free, public South African Total Cost of Ownership calculator for fleet and vehicle buying decisions.
 
@@ -15,7 +15,7 @@ Search a catalog of vehicles sold in South Africa, pick the ones you're consider
 - **Second-hand vehicles** — any catalog vehicle can be toggled to "second-hand" mode (enter purchase price + current mileage) directly on its comparison card, reusing its real fuel consumption and service-rate data rather than requiring a separate manual entry.
 - **Cost-per-km (CPK)** — every card shows R/km, so new and used vehicles compare on the same basis.
 - **Data Analytics tab** — depreciation curve chart (straight-line vs. diminishing-balance toggle) and a cost-per-km simulator (compare your own billing rate against the calculated true cost).
-- **Fleet Procure (beta)** — lead-gen form that routes enquiries to brand-specific dealer contacts (currently placeholders — see `DEALER_CONTACTS` in the source and `MONETIZATION.md`). Marked as beta in the UI and copy so it doesn't overpromise dealer routing that isn't live yet; enquiries land with the Fleet TCO team in the meantime.
+- **Fleet Procure (beta)** — lead-gen form that routes enquiries to brand-specific dealer contacts (currently placeholders — see `DEALER_CONTACTS` in the source and `MONETIZATION.md`). Marked as beta in the UI and copy so it doesn't overpromise dealer routing that isn't live yet; enquiries land with the FleetPro TCO team in the meantime.
 
 ### Vehicle catalog
 
