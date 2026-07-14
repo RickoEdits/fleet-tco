@@ -158,6 +158,9 @@
   .photos-link:hover{border-bottom-color:var(--teal);}
   .remove-btn{background:none;border:none;color:var(--muted-2);cursor:pointer;font-size:16px;line-height:1;padding:2px 6px;border-radius:var(--radius);}
   .remove-btn:hover{color:var(--bad);background:var(--amber-soft);}
+  .pdf-btn{background:var(--amber);border:1px solid var(--amber);color:var(--surface);font-family:'Courier Prime',monospace;font-size:11.5px;text-transform:uppercase;letter-spacing:.03em;padding:8px 14px;border-radius:var(--radius);cursor:pointer;transition:transform 160ms ease-out,opacity 160ms ease;white-space:nowrap;}
+  .pdf-btn:hover:not(:disabled){transform:scale(1.03);}
+  .pdf-btn:disabled{opacity:.4;cursor:not-allowed;}
   .total-line{margin:8px 0 14px;}
   .total-value{font-family:'Fraunces',serif;font-weight:700;font-size:29px;color:var(--amber);letter-spacing:-.01em;}
   .total-label{font-size:11px;color:var(--muted-2);text-transform:uppercase;letter-spacing:.08em;font-family:'Courier Prime',monospace;}
@@ -280,6 +283,7 @@
 
   <div class="section-heading">
     <h2>Comparison</h2>
+    <button class="pdf-btn" data-pdf-btn disabled>Download PDF</button>
   </div>
   <div class="cards" id="cards"></div>
 
@@ -353,7 +357,10 @@
   <section id="view-analytics" class="view" style="display:none;">
     <div class="section-heading" style="margin-top:10px;">
       <h2>Data Analytics</h2>
-      <span class="hint">Depreciation curves &amp; cost-per-km simulator</span>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <span class="hint">Depreciation curves &amp; cost-per-km simulator</span>
+        <button class="pdf-btn" data-pdf-btn disabled>Download PDF</button>
+      </div>
     </div>
 
     <div class="panel">
@@ -400,6 +407,7 @@
   </section>
 </div>
 
+<script src="assets/vendor/jspdf.umd.min.js"></script>
 <script>
 const VEHICLE_DB = [{"name":"Ford Everest","brand":"Ford","type":"SUV","cost":825000,"consumption":8.5},{"name":"Ford Territory","brand":"Ford","type":"SUV","cost":593500,"consumption":7.9},{"name":"Ford Ranger XL","brand":"Ford","type":"Pickup","cost":599500,"consumption":7.6},{"name":"Ford Ranger XLT","brand":"Ford","type":"Pickup","cost":655000,"consumption":7.8},{"name":"Ford Ranger Sport","brand":"Ford","type":"Pickup","cost":735000,"consumption":8.0},{"name":"Ford Ranger Wildtrak","brand":"Ford","type":"Pickup","cost":865000,"consumption":8.4},{"name":"Ford Ranger Tremor","brand":"Ford","type":"Pickup","cost":1039000,"consumption":8.9},{"name":"Ford Ranger Platinum","brand":"Ford","type":"Pickup","cost":1179500,"consumption":8.6},{"name":"Ford Ranger Raptor","brand":"Ford","type":"Pickup","cost":1299000,"consumption":10.5},{"name":"Ford Transit Custom","brand":"Ford","type":"Van","cost":770000,"consumption":7.6},{"name":"Ford Transit Van","brand":"Ford","type":"Van","cost":1011500,"consumption":8.9},{"name":"Ford Tourneo Custom","brand":"Ford","type":"MPV","cost":1075500,"consumption":7.8},{"name":"GWM Jolion Pro","brand":"GWM","type":"SUV","cost":392150,"consumption":6.5},{"name":"GWM Jolion Pro Limited","brand":"GWM","type":"SUV","cost":431450,"consumption":6.7},{"name":"GWM Jolion","brand":"GWM","type":"SUV","cost":409900,"consumption":6.5},{"name":"GWM H6","brand":"GWM","type":"SUV","cost":589900,"consumption":7.8},{"name":"GWM H6 GT","brand":"GWM","type":"SUV","cost":699900,"consumption":8.2},{"name":"GWM H7","brand":"GWM","type":"SUV","cost":649900,"consumption":8.6},{"name":"GWM Tank 300","brand":"GWM","type":"SUV","cost":699900,"consumption":9.0},{"name":"GWM Tank 500","brand":"GWM","type":"SUV","cost":1149900,"consumption":10.5},{"name":"GWM P300","brand":"GWM","type":"Pickup","cost":414950,"consumption":7.8},{"name":"GWM P500","brand":"GWM","type":"Pickup","cost":799900,"consumption":8.6},{"name":"GWM Steed 5","brand":"GWM","type":"Pickup","cost":307950,"consumption":8.4},{"name":"Honda Amaze","brand":"Honda","type":"Sedan","cost":254900,"consumption":5.8},{"name":"Honda Fit","brand":"Honda","type":"Hatchback","cost":380500,"consumption":5.6},{"name":"Honda Elevate","brand":"Honda","type":"SUV","cost":369900,"consumption":6.3},{"name":"Honda HR-V","brand":"Honda","type":"SUV","cost":489900,"consumption":6.4},{"name":"Honda CR-V","brand":"Honda","type":"SUV","cost":689900,"consumption":7.5},{"name":"Honda Civic RS","brand":"Honda","type":"Sedan","cost":725000,"consumption":6.8},{"name":"Hyundai Grand i10","brand":"Hyundai","type":"Hatchback","cost":218900,"consumption":5.0},{"name":"Hyundai Grand i10 Sedan","brand":"Hyundai","type":"Sedan","cost":279900,"consumption":5.1},{"name":"Hyundai i20","brand":"Hyundai","type":"Hatchback","cost":296900,"consumption":5.3},{"name":"Hyundai Exter","brand":"Hyundai","type":"SUV","cost":269900,"consumption":5.6},{"name":"Hyundai Venue Cargo","brand":"Hyundai","type":"Van","cost":309900,"consumption":5.7},{"name":"Hyundai Alcazar","brand":"Hyundai","type":"SUV","cost":499900,"consumption":7.8},{"name":"Hyundai Tucson","brand":"Hyundai","type":"SUV","cost":568900,"consumption":7.2},{"name":"Hyundai Santa Fe Hybrid","brand":"Hyundai","type":"SUV","cost":1249900,"consumption":6.0},{"name":"Hyundai Staria","brand":"Hyundai","type":"MPV","cost":975900,"consumption":8.7},{"name":"Hyundai Staria Panelvan","brand":"Hyundai","type":"Van","cost":699900,"consumption":8.7},{"name":"Hyundai H-100 Deck","brand":"Hyundai","type":"Pickup","cost":389900,"consumption":8.2},{"name":"Hyundai H-100 Chassis Cab","brand":"Hyundai","type":"Pickup","cost":367900,"consumption":8.2},{"name":"Hyundai H-100 Tipper","brand":"Hyundai","type":"Pickup","cost":431500,"consumption":8.5},{"name":"Isuzu D-Max Single Cab","brand":"Isuzu","type":"Pickup","cost":373750,"consumption":7.5},{"name":"Isuzu D-Max Extended Cab","brand":"Isuzu","type":"Pickup","cost":533690,"consumption":7.7},{"name":"Isuzu D-Max Double Cab","brand":"Isuzu","type":"Pickup","cost":574010,"consumption":7.8},{"name":"Isuzu D-Max X-Rider","brand":"Isuzu","type":"Pickup","cost":668990,"consumption":8.0},{"name":"Isuzu MU-X","brand":"Isuzu","type":"SUV","cost":752400,"consumption":7.9},{"name":"Jetour Dashing","brand":"Jetour","type":"SUV","cost":439900,"consumption":6.2},{"name":"Jetour X70 Plus","brand":"Jetour","type":"SUV","cost":454900,"consumption":7.5},{"name":"Jetour T1","brand":"Jetour","type":"SUV","cost":514900,"consumption":8.0},{"name":"Jetour T2","brand":"Jetour","type":"SUV","cost":569900,"consumption":8.3},{"name":"Jetour T1 i-DM","brand":"Jetour","type":"SUV","cost":689900,"consumption":5.5},{"name":"Kia Picanto","brand":"Kia","type":"Hatchback","cost":236995,"consumption":4.9},{"name":"Kia Pegas","brand":"Kia","type":"Sedan","cost":239995,"consumption":5.7},{"name":"Kia Sonet","brand":"Kia","type":"SUV","cost":329995,"consumption":5.9},{"name":"Kia Seltos","brand":"Kia","type":"SUV","cost":389995,"consumption":6.8},{"name":"Kia Sportage","brand":"Kia","type":"SUV","cost":662995,"consumption":7.0},{"name":"Kia Sorento","brand":"Kia","type":"SUV","cost":999995,"consumption":7.5},{"name":"Kia Carens","brand":"Kia","type":"MPV","cost":459995,"consumption":6.5},{"name":"Kia Carnival","brand":"Kia","type":"MPV","cost":1049995,"consumption":9.5},{"name":"Kia Tasman","brand":"Kia","type":"Pickup","cost":679995,"consumption":8.7},{"name":"Kia K2700","brand":"Kia","type":"Van","cost":351995,"consumption":8.2},{"name":"Kia K2500","brand":"Kia","type":"Van","cost":424995,"consumption":8.6},{"name":"Mahindra Bolero","brand":"Mahindra","type":"Pickup","cost":215999,"consumption":7.4},{"name":"Mahindra XUV3XO","brand":"Mahindra","type":"SUV","cost":259999,"consumption":6.2},{"name":"Mahindra Scorpio-N","brand":"Mahindra","type":"SUV","cost":489999,"consumption":8.6},{"name":"Mahindra XUV700","brand":"Mahindra","type":"SUV","cost":495199,"consumption":7.3},{"name":"Mahindra Pik Up Single Cab","brand":"Mahindra","type":"Pickup","cost":301599,"consumption":8.0},{"name":"Mahindra Pik Up Double Cab","brand":"Mahindra","type":"Pickup","cost":413849,"consumption":8.2},{"name":"Mahindra S6 Mining","brand":"Mahindra","type":"Pickup","cost":478649,"consumption":8.6},{"name":"Mahindra S4 Game Viewer","brand":"Mahindra","type":"Pickup","cost":503749,"consumption":8.4},{"name":"Mahindra Karoo Dew","brand":"Mahindra","type":"Pickup","cost":657399,"consumption":8.2},{"name":"Mahindra Karoo Dusk","brand":"Mahindra","type":"Pickup","cost":657399,"consumption":8.2},{"name":"Mahindra Karoo Dawn","brand":"Mahindra","type":"Pickup","cost":672699,"consumption":8.2},{"name":"Mahindra Karoo Storm","brand":"Mahindra","type":"Pickup","cost":672699,"consumption":8.2},{"name":"Nissan Magnite","brand":"Nissan","type":"SUV","cost":252200,"consumption":5.6},{"name":"Nissan X-Trail","brand":"Nissan","type":"SUV","cost":687900,"consumption":7.5},{"name":"Nissan Navara Single Cab","brand":"Nissan","type":"Pickup","cost":433500,"consumption":7.0},{"name":"Nissan Navara Double Cab","brand":"Nissan","type":"Pickup","cost":493000,"consumption":7.2},{"name":"Suzuki S-Presso","brand":"Suzuki","type":"Hatchback","cost":178900,"consumption":4.9},{"name":"Suzuki Celerio","brand":"Suzuki","type":"Hatchback","cost":188900,"consumption":4.7},{"name":"Suzuki Ignis","brand":"Suzuki","type":"Hatchback","cost":237900,"consumption":5.0},{"name":"Suzuki Swift","brand":"Suzuki","type":"Hatchback","cost":228900,"consumption":4.9},{"name":"Suzuki Swift Sport","brand":"Suzuki","type":"Hatchback","cost":469900,"consumption":6.3},{"name":"Suzuki Baleno","brand":"Suzuki","type":"Hatchback","cost":269900,"consumption":5.5},{"name":"Suzuki Dzire","brand":"Suzuki","type":"Sedan","cost":229900,"consumption":5.0},{"name":"Suzuki Fronx","brand":"Suzuki","type":"SUV","cost":303900,"consumption":5.6},{"name":"Suzuki Grand Vitara","brand":"Suzuki","type":"SUV","cost":359900,"consumption":5.6},{"name":"Suzuki Jimny","brand":"Suzuki","type":"SUV","cost":444900,"consumption":6.0},{"name":"Suzuki Jimny 5-Door","brand":"Suzuki","type":"SUV","cost":439900,"consumption":6.0},{"name":"Suzuki Ertiga","brand":"Suzuki","type":"MPV","cost":304900,"consumption":5.5},{"name":"Suzuki XL6","brand":"Suzuki","type":"MPV","cost":357900,"consumption":5.8},{"name":"Suzuki Eeco","brand":"Suzuki","type":"Van","cost":196900,"consumption":6.5},{"name":"Suzuki Super Carry","brand":"Suzuki","type":"Van","cost":197900,"consumption":6.8},{"name":"Toyota Vitz","brand":"Toyota","type":"Hatchback","cost":209990,"consumption":4.5},{"name":"Toyota Starlet","brand":"Toyota","type":"Hatchback","cost":244900,"consumption":4.5},{"name":"Toyota Starlet Cross","brand":"Toyota","type":"SUV","cost":304900,"consumption":5.5},{"name":"Toyota Urban Cruiser","brand":"Toyota","type":"SUV","cost":319900,"consumption":5.5},{"name":"Toyota Corolla Cross","brand":"Toyota","type":"SUV","cost":385000,"consumption":5.9},{"name":"Toyota Corolla Hatch","brand":"Toyota","type":"Hatchback","cost":500700,"consumption":5.8},{"name":"Toyota Corolla","brand":"Toyota","type":"Sedan","cost":590200,"consumption":5.7},{"name":"Toyota Rumion","brand":"Toyota","type":"MPV","cost":339900,"consumption":6.5},{"name":"Toyota RAV4","brand":"Toyota","type":"SUV","cost":610000,"consumption":6.5},{"name":"Toyota Fortuner","brand":"Toyota","type":"SUV","cost":685900,"consumption":7.6},{"name":"Toyota Land Cruiser Prado","brand":"Toyota","type":"SUV","cost":980000,"consumption":7.9},{"name":"Toyota Land Cruiser 76","brand":"Toyota","type":"SUV","cost":980000,"consumption":10.7},{"name":"Toyota Land Cruiser 300","brand":"Toyota","type":"SUV","cost":1849900,"consumption":8.9},{"name":"Toyota Land Cruiser 79 Single Cab","brand":"Toyota","type":"Pickup","cost":706200,"consumption":10.3},{"name":"Toyota Land Cruiser 79 Double Cab","brand":"Toyota","type":"Pickup","cost":801000,"consumption":10.3},{"name":"Toyota Land Cruiser FJ","brand":"Toyota","type":"SUV","cost":714000,"consumption":8.9},{"name":"Toyota Hilux Single Cab","brand":"Toyota","type":"Pickup","cost":326200,"consumption":7.6},{"name":"Toyota Hilux Xtra Cab","brand":"Toyota","type":"Pickup","cost":506300,"consumption":7.8},{"name":"Toyota Hilux Double Cab","brand":"Toyota","type":"Pickup","cost":479200,"consumption":7.9},{"name":"Toyota Hiace Ses'fikile","brand":"Toyota","type":"Van","cost":549300,"consumption":9.0},{"name":"Toyota Hiace","brand":"Toyota","type":"Van","cost":680900,"consumption":8.7},{"name":"Toyota Quantum Panel Van","brand":"Toyota","type":"Van","cost":845700,"consumption":9.3},{"name":"Toyota Quantum Bus","brand":"Toyota","type":"Van","cost":895000,"consumption":9.5},{"name":"Toyota Coaster","brand":"Toyota","type":"Bus","cost":1207600,"consumption":13.5},{"name":"Volkswagen Polo Vivo","brand":"Volkswagen","type":"Hatchback","cost":271900,"consumption":5.3},{"name":"Volkswagen Polo","brand":"Volkswagen","type":"Hatchback","cost":373800,"consumption":5.5},{"name":"Volkswagen Polo Sedan","brand":"Volkswagen","type":"Sedan","cost":382600,"consumption":5.6},{"name":"Volkswagen Taigo","brand":"Volkswagen","type":"SUV","cost":514500,"consumption":6.0},{"name":"Volkswagen T-Cross","brand":"Volkswagen","type":"SUV","cost":399900,"consumption":6.2},{"name":"Volkswagen T-Roc","brand":"Volkswagen","type":"SUV","cost":648900,"consumption":6.8},{"name":"Volkswagen Tiguan","brand":"Volkswagen","type":"SUV","cost":668100,"consumption":7.3},{"name":"Volkswagen Tayron","brand":"Volkswagen","type":"SUV","cost":799000,"consumption":7.6},{"name":"Volkswagen Touareg","brand":"Volkswagen","type":"SUV","cost":1494300,"consumption":8.5},{"name":"Volkswagen Golf 1.4 TSI","brand":"Volkswagen","type":"Hatchback","cost":580900,"consumption":6.2},{"name":"Volkswagen Amarok","brand":"Volkswagen","type":"Pickup","cost":593200,"consumption":7.6},{"name":"Volkswagen Caddy Cargo","brand":"Volkswagen","type":"Van","cost":466700,"consumption":5.8},{"name":"Volkswagen Caddy","brand":"Volkswagen","type":"Van","cost":573200,"consumption":5.9},{"name":"Volkswagen Transporter Van","brand":"Volkswagen","type":"Van","cost":776500,"consumption":8.2},{"name":"Volkswagen Transporter Kombi","brand":"Volkswagen","type":"MPV","cost":1102800,"consumption":8.4},{"name":"Volkswagen Crafter","brand":"Volkswagen","type":"Van","cost":861200,"consumption":9.4},{"name":"Mazda2","brand":"Mazda","type":"Hatchback","cost":336000,"consumption":6.0},{"name":"Mazda3","brand":"Mazda","type":"Hatchback","cost":498300,"consumption":6.5},{"name":"Mazda CX-3","brand":"Mazda","type":"SUV","cost":440000,"consumption":6.4},{"name":"Mazda CX-30","brand":"Mazda","type":"SUV","cost":539800,"consumption":6.8},{"name":"Mazda CX-5","brand":"Mazda","type":"SUV","cost":570500,"consumption":7.2},{"name":"Mazda CX-60","brand":"Mazda","type":"SUV","cost":790200,"consumption":6.0},{"name":"Mazda BT-50","brand":"Mazda","type":"Pickup","cost":794400,"consumption":8.0},{"name":"Mitsubishi Xpander","brand":"Mitsubishi","type":"MPV","cost":339995,"consumption":6.7},{"name":"Mitsubishi Xpander Cross","brand":"Mitsubishi","type":"MPV","cost":419995,"consumption":6.9},{"name":"Mitsubishi Triton","brand":"Mitsubishi","type":"Pickup","cost":419996,"consumption":7.8},{"name":"Mitsubishi Next Gen Triton","brand":"Mitsubishi","type":"Pickup","cost":499990,"consumption":7.6},{"name":"Mitsubishi ASX","brand":"Mitsubishi","type":"SUV","cost":384990,"consumption":6.5},{"name":"Mitsubishi Eclipse Cross","brand":"Mitsubishi","type":"SUV","cost":479990,"consumption":7.0},{"name":"Mitsubishi Outlander Sport","brand":"Mitsubishi","type":"SUV","cost":449990,"consumption":6.8},{"name":"Mitsubishi Outlander","brand":"Mitsubishi","type":"SUV","cost":759995,"consumption":7.5},{"name":"Mitsubishi Pajero Sport","brand":"Mitsubishi","type":"SUV","cost":724990,"consumption":7.9},{"name":"Mitsubishi Destinator","brand":"Mitsubishi","type":"SUV","cost":479990,"consumption":7.0},{"name":"Audi A3 Sportback TFSI S line","brand":"Audi","type":"Hatchback","cost":769000,"consumption":5.8},{"name":"Audi A5 Sedan TFSI S line","brand":"Audi","type":"Sedan","cost":1123000,"consumption":7.5},{"name":"Audi Q3 35 TFSI","brand":"Audi","type":"SUV","cost":814200,"consumption":7.3},{"name":"Audi Q5 40 TDI quattro Advanced","brand":"Audi","type":"SUV","cost":1018200,"consumption":6.2},{"name":"Audi Q7 55 TFSI quattro Platinum Edition","brand":"Audi","type":"SUV","cost":1958000,"consumption":9.9},{"name":"BMW 320i","brand":"BMW","type":"Sedan","cost":920231,"consumption":6.5},{"name":"BMW 520d M Sport","brand":"BMW","type":"Sedan","cost":1286731,"consumption":5.6},{"name":"BMW X1 sDrive18i xLine","brand":"BMW","type":"SUV","cost":813899,"consumption":6.5},{"name":"BMW X3 20 Pure Design","brand":"BMW","type":"SUV","cost":1107760,"consumption":7.5},{"name":"BMW X5 xDrive30d","brand":"BMW","type":"SUV","cost":1814637,"consumption":7.8},{"name":"Mercedes-Benz C200 Avantgarde","brand":"Mercedes-Benz","type":"Sedan","cost":943506,"consumption":6.8},{"name":"Mercedes-Benz E200 Avantgarde","brand":"Mercedes-Benz","type":"Sedan","cost":1334267,"consumption":7.2},{"name":"Mercedes-Benz GLA200 AMG Line","brand":"Mercedes-Benz","type":"SUV","cost":913640,"consumption":7.3},{"name":"Mercedes-Benz GLC220d 4Matic AMG Line","brand":"Mercedes-Benz","type":"SUV","cost":1278902,"consumption":5.2},{"name":"Mercedes-Benz GLE450d 4Matic Avantgarde","brand":"Mercedes-Benz","type":"SUV","cost":1974997,"consumption":7.6},{"name":"MINI Cooper C 3-door","brand":"MINI","type":"Hatchback","cost":607051,"consumption":6.0},{"name":"MINI Cooper S 5-door","brand":"MINI","type":"Hatchback","cost":686395,"consumption":6.3},{"name":"MINI Countryman C","brand":"MINI","type":"SUV","cost":746906,"consumption":6.1},{"name":"MINI Countryman S ALL4","brand":"MINI","type":"SUV","cost":827928,"consumption":6.1},{"name":"Land Rover Range Rover Evoque P160 S","brand":"Land Rover","type":"SUV","cost":1147000,"consumption":6.8},{"name":"Land Rover Discovery Sport D200 Landmark","brand":"Land Rover","type":"SUV","cost":1362900,"consumption":6.1},{"name":"Land Rover Defender 110 D250 S","brand":"Land Rover","type":"SUV","cost":1669100,"consumption":8.8},{"name":"Land Rover Discovery D350 S","brand":"Land Rover","type":"SUV","cost":1824700,"consumption":7.5},{"name":"Land Rover Range Rover Sport D350 Dynamic SE","brand":"Land Rover","type":"SUV","cost":2470500,"consumption":7.4},{"name":"Lexus NX 350 F Sport","brand":"Lexus","type":"SUV","cost":1276500,"consumption":8.1},{"name":"Lexus RX 350","brand":"Lexus","type":"SUV","cost":1516500,"consumption":8.7},{"name":"Lexus ES 250 EX","brand":"Lexus","type":"Sedan","cost":851500,"consumption":6.6},{"name":"Lexus UX 300h EX","brand":"Lexus","type":"SUV","cost":957100,"consumption":4.2},{"name":"Volvo XC40 B3 Essential","brand":"Volvo","type":"SUV","cost":750000,"consumption":7.1},{"name":"Volvo XC60 B5 AWD Core Bright","brand":"Volvo","type":"SUV","cost":1058400,"consumption":7.6},{"name":"Volvo XC90 B5 AWD Plus Dark","brand":"Volvo","type":"SUV","cost":1555500,"consumption":8.1},{"name":"Subaru Crosstrek 2.0i L","brand":"Subaru","type":"SUV","cost":609000,"consumption":7.2},{"name":"Subaru Forester 2.5i Field","brand":"Subaru","type":"SUV","cost":699000,"consumption":7.9},{"name":"Subaru Outback 2.5i Field","brand":"Subaru","type":"SUV","cost":839000,"consumption":7.3},{"name":"Subaru Outback 2.4T XT","brand":"Subaru","type":"SUV","cost":999000,"consumption":9.0},{"name":"Opel Corsa 1.2T GS Line","brand":"Opel","type":"Hatchback","cost":489900,"consumption":6.3},{"name":"Opel Mokka 1.2T Edition","brand":"Opel","type":"SUV","cost":534900,"consumption":6.1},{"name":"Opel Grandland 1.6T Edition","brand":"Opel","type":"SUV","cost":754900,"consumption":7.0},{"name":"Proton X50 1.5T Standard","brand":"Proton","type":"SUV","cost":449900,"consumption":6.5},{"name":"Proton X70 Standard 2WD","brand":"Proton","type":"SUV","cost":529900,"consumption":7.8},{"name":"Proton X90 1.5T Standard","brand":"Proton","type":"SUV","cost":559900,"consumption":6.8},{"name":"Alfa Romeo Giulia 2.0T Veloce","brand":"Alfa Romeo","type":"Sedan","cost":1176900,"consumption":7.4},{"name":"Alfa Romeo Stelvio 2.0T Veloce Q4","brand":"Alfa Romeo","type":"SUV","cost":1338900,"consumption":8.5},{"name":"Citroen C3 1.2 Max","brand":"Citroen","type":"Hatchback","cost":274900,"consumption":5.6},{"name":"Citroen C3 Aircross 1.2T Max","brand":"Citroen","type":"SUV","cost":386500,"consumption":6.3},{"name":"Citroen Basalt 1.2T Plus","brand":"Citroen","type":"SUV","cost":354900,"consumption":6.3},{"name":"Fiat 500 1.2 Base","brand":"Fiat","type":"Hatchback","cost":310500,"consumption":4.8},{"name":"Peugeot Landtrek 1.9TD Double Cab Professional","brand":"Peugeot","type":"Pickup","cost":463900,"consumption":7.1},{"name":"Peugeot 2008 1.2T Allure","brand":"Peugeot","type":"SUV","cost":529900,"consumption":6.5},{"name":"Peugeot Partner 1.6HDI SWB Panel Van","brand":"Peugeot","type":"Van","cost":479900,"consumption":5.1},{"name":"Renault Kwid 1.0 Techno","brand":"Renault","type":"Hatchback","cost":199999,"consumption":4.9},{"name":"Renault Triber 1.0 Iconic","brand":"Renault","type":"MPV","cost":249999,"consumption":5.5},{"name":"Renault Kiger 1.0T Iconic","brand":"Renault","type":"SUV","cost":298999,"consumption":5.0},{"name":"Renault Duster 1.3T Zen","brand":"Renault","type":"SUV","cost":489999,"consumption":6.5},{"name":"Renault Captur 1.3T Techno","brand":"Renault","type":"SUV","cost":515999,"consumption":6.6},{"name":"Jeep Gladiator 3.6 Rubicon Double Cab","brand":"Jeep","type":"Pickup","cost":1427900,"consumption":12.3},{"name":"Jeep Wrangler Unlimited 2.0T Sahara","brand":"Jeep","type":"SUV","cost":1315900,"consumption":11.1},{"name":"Jeep Grand Cherokee 3.6L Summit Reserve","brand":"Jeep","type":"SUV","cost":1599900,"consumption":9.9},{"name":"Chery Tiggo 4 Pro 1.5T LiT MT","brand":"Chery","type":"SUV","cost":269900,"consumption":7.0},{"name":"Chery Tiggo 7 Pro","brand":"Chery","type":"SUV","cost":389900,"consumption":6.8},{"name":"Chery Tiggo 8 Pro","brand":"Chery","type":"SUV","cost":529900,"consumption":7.2},{"name":"Chery Tiggo 9 2.0T Pinnacle","brand":"Chery","type":"SUV","cost":689900,"consumption":7.9},{"name":"Porsche 911 Carrera","brand":"Porsche","type":"Sedan","cost":2760000,"consumption":10.6},{"name":"Porsche Cayenne","brand":"Porsche","type":"SUV","cost":2149000,"consumption":10.4},{"name":"Porsche Macan S","brand":"Porsche","type":"SUV","cost":1854000,"consumption":9.9},{"name":"Maserati Grecale GT","brand":"Maserati","type":"SUV","cost":1990000,"consumption":9.2},{"name":"Maserati Grecale Trofeo","brand":"Maserati","type":"SUV","cost":2920000,"consumption":11.2},{"name":"Lamborghini Urus SE","brand":"Lamborghini","type":"SUV","cost":4875000,"consumption":12.9},{"name":"Lamborghini Temerario","brand":"Lamborghini","type":"Sedan","cost":6995000,"consumption":14.0},{"name":"Lamborghini Revuelto","brand":"Lamborghini","type":"Sedan","cost":12800000,"consumption":17.8},{"name":"Aston Martin DBX707","brand":"Aston Martin","type":"SUV","cost":5000000,"consumption":13.5},{"name":"Aston Martin Vantage","brand":"Aston Martin","type":"Sedan","cost":4949999,"consumption":12.1},{"name":"Lotus Emira","brand":"Lotus","type":"Sedan","cost":2550000,"consumption":11.3},{"name":"Abarth 695 Competizione","brand":"Abarth","type":"Hatchback","cost":579900,"consumption":6.3},{"name":"JAC T6 Single Cab","brand":"JAC","type":"Pickup","cost":299900,"consumption":6.9},{"name":"JAC T8 Double Cab 2.0L CTi Comfort 4x2","brand":"JAC","type":"Pickup","cost":349900,"consumption":6.5},{"name":"JAC T9 Double Cab 2.0L CTi Lux 4x2","brand":"JAC","type":"Pickup","cost":549900,"consumption":7.8},{"name":"JMC Vigus 2.5TD Double Cab 4x2 6MT","brand":"JMC","type":"Pickup","cost":399900,"consumption":7.0},{"name":"JMC Vigus 2.5TD Double Cab 4x4 8AT","brand":"JMC","type":"Pickup","cost":499900,"consumption":7.5},{"name":"DFSK K01S Mini Truck","brand":"DFSK","type":"Pickup","cost":189900,"consumption":7.1},{"name":"DFSK C35 Panel Van","brand":"DFSK","type":"Van","cost":274950,"consumption":7.2},{"name":"DFSK C35 Crew Bus","brand":"DFSK","type":"Van","cost":304950,"consumption":7.2},{"name":"BAIC B40 2.0D Plus","brand":"BAIC","type":"SUV","cost":574500,"consumption":8.5},{"name":"BAIC B40 Plus 2.0T Honor Edition","brand":"BAIC","type":"SUV","cost":699500,"consumption":10.1},{"name":"Foton Tunland G7 Double Cab 2.0TD 4x2","brand":"Foton","type":"Pickup","cost":399900,"consumption":8.0},{"name":"Foton Tunland V7 Double Cab 4x2 VLX","brand":"Foton","type":"Pickup","cost":689900,"consumption":9.0},{"name":"Foton Tunland V9 Double Cab 4x2 VLX","brand":"Foton","type":"Pickup","cost":725900,"consumption":9.0},{"name":"RE4S","brand":"Bajaj","type":"Van","cost":69950,"consumption":3.7},{"name":"Qute","brand":"Bajaj","type":"Hatchback","cost":104899,"consumption":2.8},{"name":"BRV S89-M3","brand":"Brandt","type":"Pickup","cost":392900,"consumption":11.5}];
 
@@ -587,6 +595,7 @@ document.getElementById('trayClear').addEventListener('click', () => {
 let openDetails = new Set();
 
 function renderComparison(){
+  updatePdfButtonState();
   const cardsEl = document.getElementById('cards');
   if (selected.length === 0){
     cardsEl.innerHTML = '<div class="no-selection">Add vehicles from the catalog above to compare their total cost of ownership.</div>';
@@ -889,6 +898,289 @@ function renderAnalytics(){
   renderCpkMileageChart();
   renderCpkSimRows();
 }
+
+/* ==================== PDF export ==================== */
+
+function updatePdfButtonState(){
+  document.querySelectorAll('[data-pdf-btn]').forEach(btn => { btn.disabled = selected.length === 0; });
+}
+
+function hexToRgb(hex){
+  const n = parseInt(hex.replace('#',''), 16);
+  return [(n>>16)&255, (n>>8)&255, n&255];
+}
+const PDF_INK = hexToRgb('#1c1a14'), PDF_MUTED = hexToRgb('#5c5546'), PDF_MUTED2 = hexToRgb('#8c8371'),
+      PDF_AMBER = hexToRgb('#9f4628'), PDF_SURFACE2 = hexToRgb('#ece4d1'), PDF_WHITE = [255,255,255],
+      PDF_GRID = hexToRgb('#e0d6bd');
+
+function loadImageAsDataURL(src){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      canvas.getContext('2d').drawImage(img, 0, 0);
+      resolve({ dataUrl: canvas.toDataURL('image/png'), width: img.naturalWidth, height: img.naturalHeight });
+    };
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+function pdfHeader(doc, logo, pageW, margin, section){
+  let y = margin;
+  if (logo){
+    const logoW = 40, logoH = logoW * (logo.height / logo.width);
+    doc.addImage(logo.dataUrl, 'PNG', margin, y, logoW, logoH);
+  }
+  const title = 'Total Cost of Ownership Comparison' + (section ? ' — ' + section : '');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(...PDF_INK);
+  doc.text(title, pageW - margin, y + 6, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(...PDF_MUTED);
+  const dateStr = new Date().toLocaleDateString('en-ZA', { year: 'numeric', month: 'long', day: 'numeric' });
+  doc.text(`Generated ${dateStr} · FleetPro TCO`, pageW - margin, y + 12, { align: 'right' });
+  y += 19;
+  doc.setDrawColor(...PDF_AMBER);
+  doc.setLineWidth(0.6);
+  doc.line(margin, y, pageW - margin, y);
+  return y + 8;
+}
+
+function pdfFooter(doc, pageW, pageH, margin, pageNum, totalPages){
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(...PDF_MUTED2);
+  doc.text('Indicative figures only — confirm final costs with your financier and dealership before signing.', margin, pageH - 8);
+  doc.text(`Page ${pageNum} of ${totalPages}`, pageW - margin, pageH - 8, { align: 'right' });
+}
+
+function drawComparisonTable(doc, results, startY, pageW, pageH, margin){
+  const cols = [
+    { key: 'name', label: 'Vehicle', w: 74, align: 'left' },
+    { key: 'type', label: 'Type', w: 22, align: 'left' },
+    { key: 'total', label: 'Total/mo', w: 26, align: 'right' },
+    { key: 'cpk', label: 'R/km', w: 18, align: 'right' },
+    { key: 'finance', label: 'Finance', w: 23, align: 'right' },
+    { key: 'fuel', label: 'Fuel', w: 21, align: 'right' },
+    { key: 'service', label: 'Service', w: 21, align: 'right' },
+    { key: 'tyres', label: 'Tyres', w: 19, align: 'right' },
+    { key: 'licensing', label: 'Licensing', w: 22, align: 'right' },
+    { key: 'insurance', label: 'Insurance', w: 21, align: 'right' }
+  ];
+  const tableW = cols.reduce((s,c) => s+c.w, 0);
+  const rowH = 9, headerH = 8;
+  let y = startY;
+
+  function drawHeaderRow(){
+    let x = margin;
+    doc.setFillColor(...PDF_AMBER);
+    doc.rect(margin, y, tableW, headerH, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(...PDF_WHITE);
+    cols.forEach(c => {
+      doc.text(c.label, c.align === 'right' ? x + c.w - 2 : x + 2, y + headerH - 2.6, { align: c.align });
+      x += c.w;
+    });
+    y += headerH;
+  }
+
+  drawHeaderRow();
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+
+  results.forEach(({ v, cfg, r }, i) => {
+    if (y + rowH > pageH - 22){
+      doc.addPage('a4', 'landscape');
+      y = margin;
+      drawHeaderRow();
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+    }
+    if (i % 2 === 1){
+      doc.setFillColor(...PDF_SURFACE2);
+      doc.rect(margin, y, tableW, rowH, 'F');
+    }
+    let x = margin;
+    doc.setTextColor(...PDF_INK);
+    const nameLabel = cfg.used ? `${v.name} (used, ${Math.round(cfg.mileage||0).toLocaleString('en-ZA')} km)` : v.name;
+    const vals = {
+      name: nameLabel, type: cfg.used ? 'Second-hand' : v.type,
+      total: fmt(r.total), cpk: r.cpk.toFixed(2),
+      finance: fmt(r.finance), fuel: fmt(r.fuel), service: fmt(r.service),
+      tyres: fmt(r.tyres), licensing: fmt(r.licensing), insurance: fmt(r.insurance)
+    };
+    cols.forEach(c => {
+      let text = String(vals[c.key]);
+      const maxChars = Math.floor(c.w / 1.55);
+      if (text.length > maxChars) text = text.slice(0, maxChars - 1) + '…';
+      doc.text(text, c.align === 'right' ? x + c.w - 2 : x + 2, y + rowH - 3, { align: c.align });
+      x += c.w;
+    });
+    y += rowH;
+  });
+
+  return y;
+}
+
+function drawLegend(doc, x, y, maxWidth, items, colors){
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  let cx = x, cy = y;
+  const swatchSize = 3, gapAfterSwatch = 2, itemGap = 8, lineHeight = 5.5;
+  items.forEach((label, i) => {
+    const textW = doc.getTextWidth(label);
+    const itemW = swatchSize + gapAfterSwatch + textW;
+    if (cx + itemW > x + maxWidth && cx > x){ cx = x; cy += lineHeight; }
+    const [r,g,b] = hexToRgb(colors[i % colors.length]);
+    doc.setFillColor(r,g,b);
+    doc.rect(cx, cy - swatchSize + 0.5, swatchSize, swatchSize, 'F');
+    doc.setTextColor(...PDF_MUTED);
+    doc.text(label, cx + swatchSize + gapAfterSwatch, cy);
+    cx += itemW + itemGap;
+  });
+  return cy + lineHeight;
+}
+
+function drawLineChart(doc, opts){
+  const { x, y, width, height, series, colors, xMax, xTickFmt, yTickFmt } = opts;
+  const padL = 18, padR = 4, padT = 4, padB = 10;
+  const plotW = width - padL - padR, plotH = height - padT - padB;
+  const maxY = Math.max(1, ...series.flatMap(s => s.data.map(p => p.y)));
+
+  doc.setDrawColor(...PDF_GRID);
+  doc.setLineWidth(0.2);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(...PDF_MUTED2);
+  [0, 0.25, 0.5, 0.75, 1].forEach(f => {
+    const gy = y + padT + plotH * (1 - f);
+    doc.line(x + padL, gy, x + width - padR, gy);
+    doc.text(yTickFmt(maxY * f), x + padL - 2, gy + 1, { align: 'right' });
+  });
+  [0, 0.25, 0.5, 0.75, 1].forEach(f => {
+    const gx = x + padL + plotW * f;
+    doc.text(xTickFmt(xMax * f), gx, y + height - 1, { align: 'center' });
+  });
+
+  doc.setLineWidth(0.5);
+  series.forEach((s, i) => {
+    const [r,g,b] = hexToRgb(colors[i % colors.length]);
+    doc.setDrawColor(r,g,b);
+    for (let j = 1; j < s.data.length; j++){
+      const p0 = s.data[j-1], p1 = s.data[j];
+      const x0 = x + padL + (xMax>0 ? p0.x/xMax : 0)*plotW, y0 = y + padT + plotH - (p0.y/maxY)*plotH;
+      const x1 = x + padL + (xMax>0 ? p1.x/xMax : 0)*plotW, y1 = y + padT + plotH - (p1.y/maxY)*plotH;
+      doc.line(x0, y0, x1, y1);
+    }
+  });
+}
+
+async function generateComparisonPDF(){
+  if (selected.length === 0 || !window.jspdf) return;
+  const btns = document.querySelectorAll('[data-pdf-btn]');
+  const originalLabels = new Map();
+  btns.forEach(b => { originalLabels.set(b, b.textContent); b.disabled = true; b.textContent = 'Generating…'; });
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const margin = 15;
+
+    let logo = null;
+    try { logo = await loadImageAsDataURL('assets/logo.png'); } catch(e){ /* logo is optional */ }
+
+    const g = getGlobals();
+    const results = selected.map(key => ({ key, v: findVeh(key), cfg: effective(key), r: computeVehicle(effective(key), g) }));
+
+    // Page 1: header, contract params, comparison table, methodology note
+    let y = pdfHeader(doc, logo, pageW, margin);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...PDF_MUTED);
+    doc.text(
+      `Interest rate ${g.rate}% p.a. · Term ${g.term} months · ${Math.round(g.startKm).toLocaleString('en-ZA')} - ${Math.round(g.endKm).toLocaleString('en-ZA')} km · Fuel R${g.fuelprice.toFixed(2)}/L`,
+      margin, y
+    );
+    y += 8;
+
+    y = drawComparisonTable(doc, results, y, pageW, pageH, margin);
+    y += 7;
+
+    if (y < pageH - 20){
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(...PDF_MUTED2);
+      const disclaimer = 'Finance uses a reducing-balance loan payment against the residual/balloon value. Fuel, service and tyre costs scale with monthly distance. Insurance is a monthly rate applied to vehicle cost. Pricing is indicative ex-showroom South Africa.';
+      doc.text(doc.splitTextToSize(disclaimer, pageW - margin*2), margin, y);
+    }
+
+    // Page 2: depreciation curve
+    const chartX = margin, chartW = pageW - margin*2, chartH = 100;
+    const withDepr = results.filter(x => x.v);
+    if (withDepr.length){
+      doc.addPage('a4', 'landscape');
+      let cy = pdfHeader(doc, logo, pageW, margin, 'Depreciation curve');
+      const term = g.term;
+      const deprSeries = withDepr.map(({ v, cfg }) => ({
+        label: v.name,
+        data: computeDeprSeries(cfg, term, deprMode, 24).map(p => ({ x: p.t, y: p.value }))
+      }));
+      drawLineChart(doc, {
+        x: chartX, y: cy, width: chartW, height: chartH,
+        series: deprSeries, colors: DEPR_CURVE_COLORS, xMax: term,
+        xTickFmt: v => Math.round(v) + 'mo', yTickFmt: v => fmtK(v)
+      });
+      drawLegend(doc, chartX, cy + chartH + 8, chartW, deprSeries.map(s => s.label), DEPR_CURVE_COLORS);
+    }
+
+    // Page 3: real-world cost-per-km by mileage
+    const withCpk = results.filter(x => VEHICLE_CPK_DATA[x.key]);
+    if (withCpk.length){
+      doc.addPage('a4', 'landscape');
+      let cy = pdfHeader(doc, logo, pageW, margin, 'Cost-per-km by mileage');
+      const maxMileage = CPK_MILEAGE_POINTS[CPK_MILEAGE_POINTS.length - 1];
+      const cpkSeries = withCpk.map(({ v, key }) => ({
+        label: v.name,
+        data: CPK_MILEAGE_POINTS.map((km, idx) => ({ x: km, y: VEHICLE_CPK_DATA[key][idx] }))
+      }));
+      drawLineChart(doc, {
+        x: chartX, y: cy, width: chartW, height: chartH,
+        series: cpkSeries, colors: DEPR_CURVE_COLORS, xMax: maxMileage,
+        xTickFmt: v => Math.round(v/1000) + 'k', yTickFmt: v => v.toFixed(1)
+      });
+      let legendY = drawLegend(doc, chartX, cy + chartH + 8, chartW, cpkSeries.map(s => s.label), DEPR_CURVE_COLORS);
+      const missing = results.length - withCpk.length;
+      if (missing > 0){
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(8);
+        doc.setTextColor(...PDF_MUTED2);
+        doc.text(`${missing} of the selected vehicle${missing===1?'':'s'} ${missing===1?'has':'have'} no matched fleet CPK data and ${missing===1?'is':'are'} not shown above.`, chartX, legendY);
+      }
+    }
+
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let p = 1; p <= totalPages; p++){
+      doc.setPage(p);
+      pdfFooter(doc, pageW, pageH, margin, p, totalPages);
+    }
+
+    doc.save(`fleetpro-tco-comparison-${new Date().toISOString().slice(0,10)}.pdf`);
+  } finally {
+    btns.forEach(b => { b.disabled = selected.length === 0; b.textContent = originalLabels.get(b); });
+  }
+}
+
+document.querySelectorAll('[data-pdf-btn]').forEach(btn => {
+  btn.addEventListener('click', generateComparisonPDF);
+});
 
 document.querySelectorAll('#deprToggle .pill').forEach(p => {
   p.addEventListener('click', () => {
