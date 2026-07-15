@@ -5,6 +5,17 @@
 //   WEB3FORMS_ACCESS_KEY
 
 const REQUIRED_FIELDS = ['name', 'phone', 'email'];
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_LENGTHS = {
+  name: 100,
+  company: 100,
+  phone: 30,
+  email: 254,
+  brand: 50,
+  vehicle: 100,
+  fleet_size: 20,
+  message: 2000
+};
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -12,11 +23,12 @@ module.exports = async (req, res) => {
     return;
   }
 
-  // Same-origin check: reject requests whose Origin doesn't match this deployment's
-  // own host. Blocks other sites from riding on this endpoint to spam through it.
+  // Same-origin check: reject requests whose Origin doesn't exactly match this
+  // deployment's own host. Blocks other sites from riding on this endpoint to
+  // spam through it.
   const origin = req.headers.origin;
   const host = req.headers.host;
-  if (origin && host && !origin.endsWith(host)) {
+  if (origin && host && origin !== `https://${host}` && origin !== `http://${host}`) {
     res.status(403).json({ success: false, message: 'Forbidden' });
     return;
   }
@@ -34,6 +46,25 @@ module.exports = async (req, res) => {
     if (!body[field] || typeof body[field] !== 'string' || !body[field].trim()) {
       res.status(400).json({ success: false, message: `Missing required field: ${field}` });
       return;
+    }
+  }
+
+  if (!EMAIL_RE.test(body.email.trim())) {
+    res.status(400).json({ success: false, message: 'Invalid email address' });
+    return;
+  }
+
+  for (const [field, max] of Object.entries(MAX_LENGTHS)) {
+    const value = body[field];
+    if (value !== undefined && value !== null) {
+      if (typeof value !== 'string') {
+        res.status(400).json({ success: false, message: `Invalid field: ${field}` });
+        return;
+      }
+      if (value.length > max) {
+        res.status(400).json({ success: false, message: `Field too long: ${field}` });
+        return;
+      }
     }
   }
 
